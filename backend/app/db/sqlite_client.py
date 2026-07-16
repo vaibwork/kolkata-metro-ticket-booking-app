@@ -1,8 +1,11 @@
 import sqlite3
 from pathlib import Path
 from contextlib import contextmanager
+from app.core.config import settings
 
-DB_PATH = Path(__file__).resolve() / "metadatagraph.db"
+DB_PATH = Path(settings.SQLITE_DB_PATH)
+if not DB_PATH.is_absolute():
+    DB_PATH = Path(__file__).resolve().parents[3] / DB_PATH
 
 @contextmanager
 def get_sqlite_conn():
