@@ -6,6 +6,10 @@ from app.core.config import settings
 DB_PATH = Path(settings.SQLITE_DB_PATH)
 if not DB_PATH.is_absolute():
     DB_PATH = Path(__file__).resolve().parents[3] / DB_PATH
+if not DB_PATH.exists():
+    backend_relative_path = Path(__file__).resolve().parents[1] / "db" / "metadata_graph.db"
+    if backend_relative_path.exists():
+        DB_PATH = backend_relative_path
 
 @contextmanager
 def get_sqlite_conn():

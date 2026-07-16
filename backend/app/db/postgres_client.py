@@ -41,6 +41,35 @@ class User(Base):
 engine = create_engine(settings.DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+def initialize_database():
+    """
+    Creates required operational tables and seed rows for fresh deployments.
+    """
+    Base.metadata.create_all(bind=engine)
+
+    db = SessionLocal()
+    try:
+        config = db.query(SystemConfig).filter(SystemConfig.key == "system_a").first()
+        if not config:
+            db.add(SystemConfig(key="system_a", config_value="Alpha77X#"))
+        else:
+            config.config_value = "Alpha77X#"
+
+        heartbeat = db.query(WorkerHeartbeat).filter(WorkerHeartbeat.id == 1).first()
+        now = datetime.datetime.now(datetime.timezone.utc)
+        if not heartbeat:
+            db.add(WorkerHeartbeat(id=1, last_run_timestamp=now, status="INITIALIZED"))
+        else:
+            heartbeat.last_run_timestamp = now
+            heartbeat.status = "INITIALIZED"
+
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
+
 def get_db():
     """
     FastAPI dependency that provides a transactional scope.
