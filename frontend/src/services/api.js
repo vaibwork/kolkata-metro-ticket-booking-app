@@ -9,7 +9,11 @@ const API = axios.create({
 
 export const getSystemStatus = () => API.get('/status');
 export const getAllStations = () => API.get('/allstations');
-export const getRoute = (source, destination) => API.get('/route', { params: { source, destination } });
+export const getRoute = (source, destination) => API.get('/route', {
+  params: source?.id && destination?.id
+    ? { source_id: source.id, destination_id: destination.id }
+    : { source, destination },
+});
 export const getTickets = () => API.get('/tickets');
 export const bookTicket = (source, destination, fare, expiresInMinutes = 60) => 
   API.post('/tickets', { 

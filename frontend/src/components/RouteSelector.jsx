@@ -191,7 +191,7 @@ export default function RouteSelector({ onTicketBooked }) {
     setSuccessMsg('');
 
     try {
-      const response = await getRoute(sourceStation.name, destinationStation.name);
+      const response = await getRoute(sourceStation, destinationStation);
       setRouteData(response.data);
     } catch (err) {
       console.error(err);
@@ -233,7 +233,7 @@ export default function RouteSelector({ onTicketBooked }) {
       setError("Please select both source and destination stations.");
       return;
     }
-    if (source.name === destination.name) {
+    if (source.id === destination.id) {
       setError("Source and destination stations cannot be the same.");
       return;
     }
@@ -415,6 +415,38 @@ export default function RouteSelector({ onTicketBooked }) {
               })}
             </div>
           </div>
+
+          {routeData.route_legs?.length > 0 && (
+            <div className="border border-slate-200 rounded-lg overflow-hidden bg-white">
+              <div className="px-3 py-2 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                <h4 className="text-[10px] font-extrabold uppercase tracking-wider text-slate-600">Leg Breakdown</h4>
+                <span className="text-[10px] font-semibold text-slate-400">{routeData.route_legs.length} legs</span>
+              </div>
+              <div className="divide-y divide-slate-100">
+                {routeData.route_legs.map((leg, idx) => {
+                  const fromColors = getLineColorDetails(leg.from_line);
+                  return (
+                    <div key={`leg-${idx}`} className="px-3 py-2 text-xs flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="font-semibold text-slate-700 truncate">
+                          {leg.from_station_name} {'->'} {leg.to_station_name}
+                        </div>
+                        <div className="mt-0.5 flex items-center gap-1.5">
+                          <span className={`text-[9px] uppercase font-bold px-1.5 py-0.5 rounded border ${fromColors.tag}`}>
+                            {leg.edge_type === 'interchange' ? 'Transfer' : leg.from_line}
+                          </span>
+                          <span className="text-[10px] text-slate-400">{leg.travel_time_minutes} min</span>
+                        </div>
+                      </div>
+                      <span className="text-[10px] font-bold text-emerald-700 shrink-0">
+                        INR {leg.fare_inr}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           <button
             onClick={handleBookTicket}

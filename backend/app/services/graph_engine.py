@@ -2,18 +2,47 @@ import heapq
 from collections import defaultdict
 from app.db.sqlite_client import get_sqlite_conn
 
-def get_metro_route(source_name: str, destination_name: str):
+def _clean_station_name(value):
+    return value.strip() if value else None
+
+def _resolve_station_ids(conn, station_name=None, station_id=None, label="Station"):
+    if station_id is not None:
+        row = conn.execute(
+            "SELECT id FROM stations WHERE id = ?",
+            (station_id,),
+        ).fetchone()
+        if not row:
+            raise ValueError(f"{label} station not found: {station_id}")
+        return [row["id"]]
+
+    station_name = _clean_station_name(station_name)
+    if not station_name:
+        raise ValueError(f"{label} station name or id is required.")
+
+    station_ids = [
+        row["id"]
+        for row in conn.execute(
+            "SELECT id FROM stations WHERE lower(name) = lower(?)",
+            (station_name,),
+        )
+    ]
+    if not station_ids:
+        raise ValueError(f"{label} station not found: {station_name}")
+
+    return station_ids
+
+def get_metro_route(source_name=None, destination_name=None, source_id=None, destination_id=None):
     """
     Computes the shortest route (based on travel time) between the source and 
     destination metro stations using Dijkstra's algorithm.
     Reads station, connection, and interchange graphs dynamically from SQLite.
     """
-    source_name = source_name.strip()
-    destination_name = destination_name.strip()
+    source_name = _clean_station_name(source_name)
+    destination_name = _clean_station_name(destination_name)
 
-    if not source_name or not destination_name:
-        raise ValueError("Source and destination station names are required.")
-    if source_name.casefold() == destination_name.casefold():
+    if source_id is not None and destination_id is not None and source_id == destination_id:
+        raise ValueError("Source and destination stations cannot be the same.")
+    if source_id is None and destination_id is None and source_name and destination_name and source_name.casefold() == destination_name.casefold():
         raise ValueError("Source and destination stations cannot be the same.")
 
     with get_sqlite_conn() as conn:
@@ -26,25 +55,8 @@ def get_metro_route(source_name: str, destination_name: str):
             for row in conn.execute("SELECT id, name, line FROM stations")
         }
 
-        source_ids = [
-            row["id"]
-            for row in conn.execute(
-                "SELECT id FROM stations WHERE lower(name) = lower(?)",
-                (source_name,),
-            )
-        ]
-        destination_ids = {
-            row["id"]
-            for row in conn.execute(
-                "SELECT id FROM stations WHERE lower(name) = lower(?)",
-                (destination_name,),
-            )
-        }
-
-        if not source_ids:
-            raise ValueError(f"Source station not found: {source_name}")
-        if not destination_ids:
-            raise ValueError(f"Destination station not found: {destination_name}")
+        source_ids = _resolve_station_ids(conn, source_name, source_id, "Source")
+        destination_ids = set(_resolve_station_ids(conn, destination_name, destination_id, "Destination"))
 
         graph = defaultdict(list)
         for row in conn.execute(
@@ -117,6 +129,7 @@ def get_metro_route(source_name: str, destination_name: str):
     path_ids.reverse()
 
     itinerary = []
+    route_legs = []
     interchanges_count = 0
     for index, station_id in enumerate(path_ids):
         station = stations[station_id]
@@ -127,6 +140,19 @@ def get_metro_route(source_name: str, destination_name: str):
             next_station = stations[path_ids[index + 1]]
             if next_edge["type"] == "interchange":
                 interchanges_count += 1
+            route_legs.append(
+                {
+                    "from_station_id": station["id"],
+                    "from_station_name": station["name"],
+                    "from_line": station["line"],
+                    "to_station_id": next_station["id"],
+                    "to_station_name": next_station["name"],
+                    "to_line": next_station["line"],
+                    "edge_type": next_edge["type"],
+                    "travel_time_minutes": next_edge["time"],
+                    "fare_inr": next_edge["fare"],
+                }
+            )
 
         itinerary.append(
             {
@@ -142,11 +168,17 @@ def get_metro_route(source_name: str, destination_name: str):
     return {
         "route_summary": {
             "source": stations[path_ids[0]]["name"],
+            "source_station_id": stations[path_ids[0]]["id"],
+            "source_line": stations[path_ids[0]]["line"],
             "destination": stations[path_ids[-1]]["name"],
+            "destination_station_id": stations[path_ids[-1]]["id"],
+            "destination_line": stations[path_ids[-1]]["line"],
             "total_travel_time_minutes": total_time,
             "total_fare_inr": total_fare,
             "interchanges_count": interchanges_count,
             "station_count": len(path_ids),
+            "leg_count": len(route_legs),
         },
         "ordered_itinerary": itinerary,
+        "route_legs": route_legs,
     }

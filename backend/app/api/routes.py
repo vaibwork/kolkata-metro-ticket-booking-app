@@ -1,12 +1,13 @@
 import datetime
 import uuid
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from app.db.postgres_client import get_db, Ticket
 from app.db.sqlite_client import get_sqlite_conn
 from app.services.unlock_service import verify_and_unlock_system
 from app.services.graph_engine import get_metro_route
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from typing import List, Optional
 
 router = APIRouter()
@@ -44,6 +45,11 @@ class SystemStatusResponse(BaseModel):
     checks: dict
     time_diff_seconds: Optional[float] = None
 
+class HealthResponse(BaseModel):
+    api: str
+    sqlite: str
+    postgres: str
+
 class TicketCreateSchema(BaseModel):
     source: str = Field(..., description="Source metro station name")
     destination: str = Field(..., description="Destination metro station name")
@@ -51,6 +57,8 @@ class TicketCreateSchema(BaseModel):
     expires_in_minutes: int = Field(60, description="Lifespan of the ticket in minutes")
 
 class TicketResponseSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     ticket_number: str
     source_station: str
@@ -59,9 +67,6 @@ class TicketResponseSchema(BaseModel):
     status: str
     created_at: datetime.datetime
     expires_at: datetime.datetime
-
-    class Config:
-        from_attributes = True
 
 # --- API Endpoints ---
 
@@ -74,16 +79,43 @@ def get_system_status(db: Session = Depends(get_db)):
     res = verify_and_unlock_system(db)
     return res
 
+@router.get("/health", response_model=HealthResponse)
+def health_check(db: Session = Depends(get_db)):
+    """
+    Lightweight health check for the API, SQLite graph database, and PostgreSQL.
+    """
+    sqlite_status = "ok"
+    postgres_status = "ok"
+
+    try:
+        with get_sqlite_conn() as conn:
+            conn.execute("SELECT 1 FROM stations LIMIT 1").fetchone()
+    except Exception:
+        sqlite_status = "error"
+
+    try:
+        db.execute(text("SELECT 1"))
+    except Exception:
+        postgres_status = "error"
+
+    return {
+        "api": "ok",
+        "sqlite": sqlite_status,
+        "postgres": postgres_status,
+    }
+
 @router.get("/route")
 def calculate_route(
-    source: str = Query(..., description="Starting station name"),
-    destination: str = Query(..., description="Destination station name")
+    source: Optional[str] = Query(None, description="Starting station name"),
+    destination: Optional[str] = Query(None, description="Destination station name"),
+    source_id: Optional[int] = Query(None, description="Starting station id"),
+    destination_id: Optional[int] = Query(None, description="Destination station id"),
 ):
     """
     Calculates the shortest metro route, fares, and travel time itinerary using Dijkstra's algorithm.
     """
     try:
-        route_info = get_metro_route(source, destination)
+        route_info = get_metro_route(source, destination, source_id, destination_id)
         return route_info
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=str(ve))
