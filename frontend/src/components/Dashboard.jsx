@@ -130,8 +130,8 @@ export default function Dashboard({ refreshTrigger }) {
                       <tr 
                         key={t.id}
                         onClick={() => setSelectedTicket(t)}
-                        className={`cursor-pointer transition hover:bg-slate-50 ${
-                          isSelected ? 'bg-slate-100/80 border-l-4 border-l-[#0F2C59]' : ''
+                        className={`booking-row cursor-pointer transition hover:bg-slate-50 ${
+                          isSelected ? 'selected-booking-row bg-slate-100/80 border-l-4 border-l-[#0F2C59]' : ''
                         }`}
                       >
                         <td className="py-3.5 px-4 font-mono font-bold text-slate-700">{t.ticket_number}</td>
