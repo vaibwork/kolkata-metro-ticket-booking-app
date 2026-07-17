@@ -56,6 +56,8 @@ desktop.ini
 # =========================
 *.apk
 *.aab
+!release-apk/
+!release-apk/*.apk
 
 # =========================
 # IDEs and Editors

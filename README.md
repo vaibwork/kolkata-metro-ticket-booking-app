@@ -215,6 +215,12 @@ A convenience copy may also be created at:
 kolkata-metro-planner-live.apk
 ```
 
+For reviewer convenience, an installable debug-signed APK is committed at:
+
+```text
+release-apk/kolkata-metro-planner-live.apk
+```
+
 This is suitable for direct phone testing. For Play Store or production distribution, create a signed release APK/AAB with a private release keystore. Capacitor's `server.url` remote-loading mode is useful for demos and internal distribution; for store-grade production, prefer a PWA/TWA or a managed live-update strategy that fits the target store policy.
 
 ## Important Design Notes
