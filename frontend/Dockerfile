@@ -6,6 +6,8 @@ COPY package*.json ./
 RUN npm ci
 
 COPY . .
+ARG VITE_API_URL=https://backend-production-15ec.up.railway.app/api
+ENV VITE_API_URL=$VITE_API_URL
 RUN npm run build
 
 EXPOSE 4173
