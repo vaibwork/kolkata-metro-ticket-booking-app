@@ -172,6 +172,8 @@ export default function RouteSelector({ onTicketBooked }) {
   const [error, setError] = useState(null);
   const [successMsg, setSuccessMsg] = useState('');
   const [fetchingStations, setFetchingStations] = useState(true);
+  const [showRouteDetails, setShowRouteDetails] = useState(false);
+  const [showLegBreakdown, setShowLegBreakdown] = useState(false);
   const didApplyUrlParams = useRef(false);
 
   // Fetch all stations from DB on mount
@@ -195,6 +197,10 @@ export default function RouteSelector({ onTicketBooked }) {
     setError(null);
     setRouteData(null);
     setSuccessMsg('');
+    const params = new URLSearchParams(window.location.search);
+    const shouldExpandDetails = params.get('details') === 'open' || params.get('routeDetails') === 'expanded';
+    setShowRouteDetails(shouldExpandDetails);
+    setShowLegBreakdown(shouldExpandDetails);
 
     try {
       const response = await getRoute(sourceStation, destinationStation);
@@ -428,73 +434,6 @@ export default function RouteSelector({ onTicketBooked }) {
             </div>
           </div>
 
-          {/* Itinerary Timeline */}
-          <div className="flex-1 pr-2 mt-2">
-            <div className="relative border-l-2 border-slate-200 ml-4 pl-6 space-y-3 py-2">
-              {routeData.ordered_itinerary.map((node, idx) => {
-                const colors = getLineColorDetails(node.line);
-                
-                return (
-                  <div key={`it-${idx}`} className="relative">
-                    {/* Bullet marker */}
-                    <span className={`absolute -left-[31px] top-1 w-4 h-4 rounded-full border-2 ${colors.dot} flex items-center justify-center shrink-0`}>
-                      <span className="w-1.5 h-1.5 rounded-full bg-white" />
-                    </span>
-
-                    {/* Content */}
-                    <div>
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span className={`font-semibold text-sm break-words ${colors.text}`}>{node.station_name}</span>
-                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border shrink-0 ${colors.tag}`}>
-                          {node.line}
-                        </span>
-                      </div>
-                      
-                      {node.is_interchange && (
-                        <div className="mt-1 flex items-center gap-1.5 text-xs bg-indigo-50 border border-indigo-100 text-indigo-700 px-2 py-1 rounded-md max-w-full animate-pulse-soft">
-                          <Shuffle className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
-                          <span>Transfer to <span className="font-bold">{node.transfer_to} Line</span></span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {routeData.route_legs?.length > 0 && (
-            <div className="border border-slate-200 rounded-lg overflow-hidden bg-white">
-              <div className="px-3 py-2 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-                <h4 className="text-[10px] font-extrabold uppercase tracking-wider text-slate-600">Leg Breakdown</h4>
-                <span className="text-[10px] font-semibold text-slate-400">{routeData.route_legs.length} legs</span>
-              </div>
-              <div className="divide-y divide-slate-100">
-                {routeData.route_legs.map((leg, idx) => {
-                  const fromColors = getLineColorDetails(leg.from_line);
-                  return (
-                    <div key={`leg-${idx}`} className="px-3 py-2 text-xs flex items-center justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="font-semibold text-slate-700 truncate">
-                          {leg.from_station_name} {'->'} {leg.to_station_name}
-                        </div>
-                        <div className="mt-0.5 flex items-center gap-1.5">
-                          <span className={`text-[9px] uppercase font-bold px-1.5 py-0.5 rounded border ${fromColors.tag}`}>
-                            {leg.edge_type === 'interchange' ? 'Transfer' : leg.from_line}
-                          </span>
-                          <span className="text-[10px] text-slate-400">{leg.travel_time_minutes} min</span>
-                        </div>
-                      </div>
-                      <span className="text-[10px] font-bold text-emerald-700 shrink-0">
-                        INR {leg.fare_inr}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
           <button
             onClick={handleBookTicket}
             disabled={booking}
@@ -503,6 +442,100 @@ export default function RouteSelector({ onTicketBooked }) {
             <Ticket className="w-4 h-4" />
             {booking ? "Generating QR Ticket..." : `Book QR Ticket (INR ${routeData.route_summary.total_fare_inr})`}
           </button>
+
+          <div className="border border-slate-200 rounded-lg overflow-hidden bg-white">
+            <button
+              type="button"
+              onClick={() => setShowRouteDetails((value) => !value)}
+              className="w-full px-3 py-2.5 bg-slate-50 hover:bg-slate-100 border-b border-slate-200 flex items-center justify-between gap-3 text-left"
+              aria-expanded={showRouteDetails}
+            >
+              <div className="min-w-0">
+                <h4 className="text-[10px] font-extrabold uppercase tracking-wider text-slate-600">Full Route</h4>
+                <p className="text-[10px] text-slate-400 mt-0.5">
+                  {routeData.route_summary.station_count} stations from {routeData.route_summary.source} to {routeData.route_summary.destination}
+                </p>
+              </div>
+              <ChevronDown className={`w-4 h-4 text-slate-500 shrink-0 transition-transform ${showRouteDetails ? 'rotate-180' : ''}`} />
+            </button>
+
+            {showRouteDetails && (
+              <div className="pr-2 px-3 py-3">
+                <div className="relative border-l-2 border-slate-200 ml-4 pl-6 space-y-3 py-1">
+                  {routeData.ordered_itinerary.map((node, idx) => {
+                    const colors = getLineColorDetails(node.line);
+
+                    return (
+                      <div key={`it-${idx}`} className="relative">
+                        <span className={`absolute -left-[31px] top-1 w-4 h-4 rounded-full border-2 ${colors.dot} flex items-center justify-center shrink-0`}>
+                          <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                        </span>
+
+                        <div>
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className={`font-semibold text-sm break-words ${colors.text}`}>{node.station_name}</span>
+                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border shrink-0 ${colors.tag}`}>
+                              {node.line}
+                            </span>
+                          </div>
+
+                          {node.is_interchange && (
+                            <div className="mt-1 flex items-center gap-1.5 text-xs bg-indigo-50 border border-indigo-100 text-indigo-700 px-2 py-1 rounded-md max-w-full animate-pulse-soft">
+                              <Shuffle className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                              <span>Transfer to <span className="font-bold">{node.transfer_to} Line</span></span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {routeData.route_legs?.length > 0 && (
+            <div className="border border-slate-200 rounded-lg overflow-hidden bg-white">
+              <button
+                type="button"
+                onClick={() => setShowLegBreakdown((value) => !value)}
+                className="w-full px-3 py-2.5 bg-slate-50 hover:bg-slate-100 border-b border-slate-200 flex items-center justify-between gap-3 text-left"
+                aria-expanded={showLegBreakdown}
+              >
+                <div className="min-w-0">
+                  <h4 className="text-[10px] font-extrabold uppercase tracking-wider text-slate-600">Leg Breakdown</h4>
+                  <p className="text-[10px] text-slate-400 mt-0.5">{routeData.route_legs.length} timed segments with fare details</p>
+                </div>
+                <ChevronDown className={`w-4 h-4 text-slate-500 shrink-0 transition-transform ${showLegBreakdown ? 'rotate-180' : ''}`} />
+              </button>
+
+              {showLegBreakdown && (
+                <div className="divide-y divide-slate-100">
+                  {routeData.route_legs.map((leg, idx) => {
+                    const fromColors = getLineColorDetails(leg.from_line);
+                    return (
+                      <div key={`leg-${idx}`} className="px-3 py-2 text-xs flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="font-semibold text-slate-700 truncate">
+                            {leg.from_station_name} {'->'} {leg.to_station_name}
+                          </div>
+                          <div className="mt-0.5 flex items-center gap-1.5">
+                            <span className={`text-[9px] uppercase font-bold px-1.5 py-0.5 rounded border ${fromColors.tag}`}>
+                              {leg.edge_type === 'interchange' ? 'Transfer' : leg.from_line}
+                            </span>
+                            <span className="text-[10px] text-slate-400">{leg.travel_time_minutes} min</span>
+                          </div>
+                        </div>
+                        <span className="text-[10px] font-bold text-emerald-700 shrink-0">
+                          INR {leg.fare_inr}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>
