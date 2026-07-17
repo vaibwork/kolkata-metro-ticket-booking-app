@@ -1,6 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getRoute, bookTicket, getAllStations } from '../services/api';
-import { ArrowRight, Clock, Banknote, Shuffle, Ticket, AlertCircle, Train, ChevronDown, Search } from 'lucide-react';
+import { ArrowRight, Clock, Banknote, Shuffle, Ticket, AlertCircle, Train, ChevronDown, Search, MapPinned } from 'lucide-react';
+
+const ASSESSMENT_ROUTES = [
+  { source: 'Dakshineswar', destination: 'VIP Bazar' },
+  { source: 'Park Street', destination: 'Howrah' },
+  { source: 'Thakurpukur', destination: 'Eco Park' },
+];
 
 // Color map details designed for light-mode readability (darker text tones)
 const getLineColorDetails = (line = '') => {
@@ -23,14 +29,14 @@ const getLineColorDetails = (line = '') => {
     return {
       dot: 'bg-orange-500 border-orange-300 shadow-sm',
       text: 'text-orange-800 font-bold',
-      tag: 'bg-orange-50 border-orange-200 text-orange-850',
+      tag: 'bg-orange-50 border-orange-200 text-orange-800',
     };
   }
   if (norm.includes('purple')) {
     return {
       dot: 'bg-purple-600 border-purple-400 shadow-sm',
       text: 'text-purple-800 font-bold',
-      tag: 'bg-purple-50 border-purple-200 text-purple-805',
+      tag: 'bg-purple-50 border-purple-200 text-purple-800',
     };
   }
   if (norm.includes('yellow')) {
@@ -44,7 +50,7 @@ const getLineColorDetails = (line = '') => {
     return {
       dot: 'bg-pink-600 border-pink-400 shadow-sm',
       text: 'text-pink-800 font-bold',
-      tag: 'bg-pink-50 border-pink-200 text-pink-805',
+      tag: 'bg-pink-50 border-pink-200 text-pink-800',
     };
   }
   if (norm.includes('red')) {
@@ -55,7 +61,7 @@ const getLineColorDetails = (line = '') => {
     };
   }
   return {
-    dot: 'bg-slate-500 border-slate-350 shadow-sm',
+    dot: 'bg-slate-500 border-slate-300 shadow-sm',
     text: 'text-slate-800 font-bold',
     tag: 'bg-slate-50 border-slate-200 text-slate-800',
   };
@@ -82,20 +88,20 @@ function StationDropdown({ label, value, onChange, stations, placeholder, disabl
         type="button"
         disabled={disabled}
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2.5 text-left text-slate-700 hover:border-slate-400 focus:border-[#0F2C59] focus:outline-none transition text-sm flex items-center justify-between disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2.5 text-left text-slate-700 hover:border-slate-400 focus:border-[#0F2C59] focus:outline-none transition text-sm flex items-center justify-between gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 min-w-0">
           {value ? (
             <>
               <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${activeColors.dot}`} />
-              <span className={`font-semibold ${activeColors.text}`}>{value.name}</span>
-              <span className="text-[10px] text-slate-500 font-bold uppercase">({value.line} Line)</span>
+              <span className={`font-semibold truncate ${activeColors.text}`}>{value.name}</span>
+              <span className="hidden sm:inline text-[10px] text-slate-500 font-bold uppercase shrink-0">({value.line} Line)</span>
             </>
           ) : (
-            <span className="text-slate-450">{placeholder}</span>
+            <span className="text-slate-400 truncate">{placeholder}</span>
           )}
         </div>
-        <ChevronDown className={`w-4 h-4 text-slate-455 transition-transform duration-205 ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform duration-200 shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {/* Dropdown Menu */}
@@ -104,7 +110,7 @@ function StationDropdown({ label, value, onChange, stations, placeholder, disabl
           {/* Backdrop click to close */}
           <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
           
-          <div className="absolute left-0 right-0 mt-1.5 bg-white border border-slate-350 rounded-lg shadow-xl z-20 max-h-[220px] flex flex-col overflow-hidden">
+          <div className="absolute left-0 right-0 mt-1.5 bg-white border border-slate-300 rounded-lg shadow-xl z-20 max-h-[220px] flex flex-col overflow-hidden">
             {/* Search Input */}
             <div className="p-2 border-b border-slate-200 flex items-center gap-2 bg-slate-50">
               <Search className="w-3.5 h-3.5 text-slate-400 shrink-0" />
@@ -137,9 +143,9 @@ function StationDropdown({ label, value, onChange, stations, placeholder, disabl
                         value?.id === st.id ? 'bg-slate-100 text-slate-800 font-bold' : 'text-slate-600'
                       }`}
                     >
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
                         <span className={`w-2 h-2 rounded-full shrink-0 ${colors.dot}`} />
-                        <span className={colors.text}>{st.name}</span>
+                        <span className={`truncate ${colors.text}`}>{st.name}</span>
                       </div>
                       <span className={`text-[9px] uppercase font-bold px-1.5 py-0.5 rounded border transition-all ${colors.tag}`}>
                         {st.line}
@@ -241,6 +247,20 @@ export default function RouteSelector({ onTicketBooked }) {
     requestRoute(source, destination);
   };
 
+  const applyAssessmentRoute = (sourceName, destinationName) => {
+    const sourceStation = stations.find((station) => station.name.toLowerCase() === sourceName.toLowerCase());
+    const destinationStation = stations.find((station) => station.name.toLowerCase() === destinationName.toLowerCase());
+
+    if (!sourceStation || !destinationStation) {
+      setError("Could not locate one of the assessment stations in the database.");
+      return;
+    }
+
+    setSource(sourceStation);
+    setDestination(destinationStation);
+    requestRoute(sourceStation, destinationStation);
+  };
+
   const handleBookTicket = async () => {
     if (!routeData) return;
     setBooking(true);
@@ -263,14 +283,14 @@ export default function RouteSelector({ onTicketBooked }) {
   };
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm h-full flex flex-col">
+    <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-sm h-full flex flex-col overflow-hidden max-w-full min-w-0">
       <div className="flex items-center gap-2 border-b border-slate-100 pb-4 mb-4">
         <Train className="w-5 h-5 text-[#0F2C59]" />
         <h3 className="font-bold text-[#0F2C59] text-base">Metro Route & Fare Planner</h3>
       </div>
 
       <form onSubmit={calculatePath} className="space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4">
           {/* Source Selector */}
           <StationDropdown
             label="Source Station"
@@ -308,6 +328,33 @@ export default function RouteSelector({ onTicketBooked }) {
           )}
         </button>
       </form>
+
+      <div className="mt-4 border border-slate-200 rounded-lg bg-slate-50 p-3">
+        <div className="flex items-center justify-between gap-2 mb-2">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <MapPinned className="w-3.5 h-3.5 text-[#0F2C59] shrink-0" />
+            <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-600 truncate">Assessment Routes</span>
+          </div>
+          <span className="text-[10px] font-semibold text-slate-400 shrink-0">1-click demo</span>
+        </div>
+        <div className="grid grid-cols-1 gap-1.5">
+          {ASSESSMENT_ROUTES.map((route) => (
+            <button
+              key={`${route.source}-${route.destination}`}
+              type="button"
+              disabled={fetchingStations || loading}
+              onClick={() => applyAssessmentRoute(route.source, route.destination)}
+              className="w-full text-left px-2.5 py-2 rounded-md bg-white hover:bg-slate-100 border border-slate-200 text-[11px] font-semibold text-slate-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-start gap-2 min-w-0"
+            >
+              <ArrowRight className="w-3 h-3 text-slate-400 shrink-0 mt-0.5" />
+              <span className="min-w-0 flex-1">
+                <span className="block truncate">{route.source}</span>
+                <span className="block truncate text-slate-500">to {route.destination}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
 
       {error && (
         <div className="mt-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-xs flex items-start gap-2">
@@ -360,20 +407,20 @@ export default function RouteSelector({ onTicketBooked }) {
       {/* Path Calculation Details */}
       {routeData && (
         <div className="mt-6 flex-1 flex flex-col space-y-4">
-          <div className="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-lg border border-slate-200">
-            <div className="text-center">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 bg-slate-50 p-3 rounded-lg border border-slate-200">
+            <div className="text-center min-w-0">
               <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 block">Total Fare</span>
               <span className="text-sm font-extrabold text-emerald-700 flex items-center justify-center gap-0.5 mt-0.5">
-                <Banknote className="w-4 h-4" /> ₹{routeData.route_summary.total_fare_inr}
+                <Banknote className="w-4 h-4" /> INR {routeData.route_summary.total_fare_inr}
               </span>
             </div>
-            <div className="text-center border-x border-slate-200">
+            <div className="text-center sm:border-x border-slate-200 min-w-0">
               <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 block">Travel Time</span>
               <span className="text-sm font-extrabold text-slate-700 flex items-center justify-center gap-0.5 mt-0.5">
                 <Clock className="w-4 h-4" /> {routeData.route_summary.total_travel_time_minutes} min
               </span>
             </div>
-            <div className="text-center">
+            <div className="text-center min-w-0">
               <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 block">Interchanges</span>
               <span className="text-sm font-extrabold text-indigo-700 flex items-center justify-center gap-0.5 mt-0.5">
                 <Shuffle className="w-4 h-4" /> {routeData.route_summary.interchanges_count}
@@ -390,21 +437,21 @@ export default function RouteSelector({ onTicketBooked }) {
                 return (
                   <div key={`it-${idx}`} className="relative">
                     {/* Bullet marker */}
-                    <span className={`absolute -left-[31px] top-1 w-4.5 h-4.5 rounded-full border-2 ${colors.dot} flex items-center justify-center shrink-0`}>
+                    <span className={`absolute -left-[31px] top-1 w-4 h-4 rounded-full border-2 ${colors.dot} flex items-center justify-center shrink-0`}>
                       <span className="w-1.5 h-1.5 rounded-full bg-white" />
                     </span>
 
                     {/* Content */}
                     <div>
-                      <div className="flex items-center gap-2">
-                        <span className={`font-semibold text-sm ${colors.text}`}>{node.station_name}</span>
-                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${colors.tag}`}>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className={`font-semibold text-sm break-words ${colors.text}`}>{node.station_name}</span>
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border shrink-0 ${colors.tag}`}>
                           {node.line}
                         </span>
                       </div>
                       
                       {node.is_interchange && (
-                        <div className="mt-1 flex items-center gap-1.5 text-xs bg-indigo-50 border border-indigo-100 text-indigo-700 px-2 py-1 rounded-md max-w-xs animate-pulse-soft">
+                        <div className="mt-1 flex items-center gap-1.5 text-xs bg-indigo-50 border border-indigo-100 text-indigo-700 px-2 py-1 rounded-md max-w-full animate-pulse-soft">
                           <Shuffle className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
                           <span>Transfer to <span className="font-bold">{node.transfer_to} Line</span></span>
                         </div>
@@ -454,7 +501,7 @@ export default function RouteSelector({ onTicketBooked }) {
             className="w-full py-2.5 px-4 font-bold text-sm text-center rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition flex items-center justify-center gap-2 shadow-sm"
           >
             <Ticket className="w-4 h-4" />
-            {booking ? "Generating QR Ticket..." : `Book Official QR Ticket (₹${routeData.route_summary.total_fare_inr})`}
+            {booking ? "Generating QR Ticket..." : `Book QR Ticket (INR ${routeData.route_summary.total_fare_inr})`}
           </button>
         </div>
       )}

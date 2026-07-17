@@ -17,6 +17,14 @@ body {
     radial-gradient(at 0% 100%, rgba(16, 185, 129, 0.04) 0px, transparent 50%);
 }
 
+html,
+body,
+#root {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 /* Subtle micro-animations */
 @keyframes pulse-soft {
   0%, 100% { opacity: 1; transform: scale(1); }

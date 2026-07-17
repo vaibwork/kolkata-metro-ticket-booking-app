@@ -38,7 +38,7 @@ export default function Dashboard({ refreshTrigger }) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 min-w-0">
       
       {/* Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -70,11 +70,11 @@ export default function Dashboard({ refreshTrigger }) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Ticket List (Left 2 cols on wide) */}
-        <div className="lg:col-span-2 bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col min-h-[400px]">
+        <div className="lg:col-span-2 bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-sm flex flex-col min-h-[400px] min-w-0">
           <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
             <div className="flex items-center gap-2">
               <Ticket className="w-5 h-5 text-[#0F2C59]" />
-              <h3 className="font-bold text-slate-800 text-sm md:text-base">Official Booking Registry</h3>
+              <h3 className="font-bold text-slate-800 text-sm md:text-base">Booking Registry</h3>
             </div>
             <button
               onClick={fetchTickets}
@@ -132,7 +132,7 @@ export default function Dashboard({ refreshTrigger }) {
                         <td className="py-3.5 px-4 font-mono font-bold text-slate-700">{t.ticket_number}</td>
                         <td className="py-3.5 px-4 font-semibold text-slate-800">{t.source_station}</td>
                         <td className="py-3.5 px-4 font-semibold text-slate-800">{t.destination_station}</td>
-                        <td className="py-3.5 px-4 font-bold text-[#128807]">₹{t.fare}</td>
+                        <td className="py-3.5 px-4 font-bold text-[#128807]">INR {t.fare}</td>
                         <td className="py-3.5 px-4">
                           <span className={`text-[9px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider inline-flex items-center gap-1 border ${
                             isActive 
@@ -156,11 +156,11 @@ export default function Dashboard({ refreshTrigger }) {
         </div>
 
         {/* Ticket QR/Detail Card View (Right 1 col on wide) */}
-        <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col justify-between">
+        <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-sm flex flex-col justify-between min-w-0">
           <div>
             <div className="flex items-center gap-2 border-b border-slate-100 pb-4 mb-4">
               <Barcode className="w-5 h-5 text-[#0F2C59]" />
-              <h3 className="font-bold text-slate-800 text-sm md:text-base">Official QR Ticket</h3>
+              <h3 className="font-bold text-slate-800 text-sm md:text-base">QR Ticket</h3>
             </div>
 
             {selectedTicket ? (
@@ -229,7 +229,7 @@ export default function Dashboard({ refreshTrigger }) {
                   <div className="flex items-center justify-between pt-1 text-[9px] font-bold">
                     <div>
                       <span className="text-slate-400 block uppercase">Fare Paid</span>
-                      <span className="text-[#128807] font-extrabold text-sm">₹{selectedTicket.fare}</span>
+                      <span className="text-[#128807] font-extrabold text-sm">INR {selectedTicket.fare}</span>
                     </div>
                     <div className="text-right">
                       <span className="text-slate-400 block uppercase">Status</span>
@@ -246,7 +246,7 @@ export default function Dashboard({ refreshTrigger }) {
 
                 {/* Expiration warning banner */}
                 {selectedTicket.status === 'ACTIVE' ? (
-                  <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg text-[10px] text-slate-650 flex items-start gap-2">
+                  <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg text-[10px] text-slate-600 flex items-start gap-2">
                     <Clock className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                     <div>
                       <span>Expires: <strong className="text-slate-800">{formatTime(selectedTicket.expires_at)}</strong>. Valid for one-way journey within 30 minutes from booking.</span>
@@ -254,7 +254,7 @@ export default function Dashboard({ refreshTrigger }) {
                   </div>
                 ) : (
                   <div className="bg-slate-50 border border-slate-200 p-3 rounded-lg text-[10px] text-slate-500 flex items-start gap-2">
-                    <AlertTriangle className="w-4 h-4 text-slate-450 shrink-0 mt-0.5" />
+                    <AlertTriangle className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
                     <div>
                       <span>This QR ticket is expired. Please generate a new transit token from the route planner.</span>
                     </div>
