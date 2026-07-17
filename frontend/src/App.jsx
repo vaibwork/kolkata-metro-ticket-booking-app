@@ -98,8 +98,8 @@ export default function App() {
         </div>
       </header>
 
-      {/* 4. Gateway Verification Alert & Code Banner */}
-      <SystemStatus onStatusVerified={handleStatusVerified} />
+      {/* 4. Compact Gateway Verification Strip */}
+      <SystemStatus mode="compact" onStatusVerified={handleStatusVerified} />
 
       {/* 5. Main Grid Workspace */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 pb-12">
@@ -116,7 +116,10 @@ export default function App() {
         </div>
       </main>
 
-      {/* 6. Official Government Footer */}
+      {/* 6. Low-priority System Diagnostics */}
+      <SystemStatus mode="details" onStatusVerified={handleStatusVerified} />
+
+      {/* 7. Official Government Footer */}
       <footer className="bg-[#0F2C59] text-white border-t border-slate-300 mt-auto">
         {/* Tricolor Strip at bottom header */}
         <div className="h-1 w-full flex">

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { getSystemStatus } from '../services/api';
 import { CheckCircle2, XCircle, RefreshCw, Key, Database, Activity, ShieldAlert } from 'lucide-react';
 
-export default function SystemStatus({ onStatusVerified }) {
+export default function SystemStatus({ onStatusVerified, mode = 'details' }) {
   const [statusData, setStatusData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -39,50 +39,48 @@ export default function SystemStatus({ onStatusVerified }) {
 
   const isOperational = statusData && statusData.status === 'fully_operational';
 
-  return (
-    <div className="w-full max-w-7xl mx-auto mb-6 px-4 mt-6">
-      
-      {/* Banner / Alert Box */}
-      <div className={`p-4 rounded-xl border mb-6 transition-all duration-300 ${
-        isOperational 
-          ? 'bg-emerald-50 border-emerald-300 text-emerald-900 shadow-sm' 
-          : 'bg-red-50 border-red-300 text-red-900 shadow-sm'
-      }`}>
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
+  if (mode === 'compact') {
+    return (
+      <div className="w-full border-b border-slate-200 bg-white/95">
+        <div className="max-w-7xl mx-auto px-4 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
             {isOperational ? (
-              <CheckCircle2 className="w-6 h-6 text-emerald-600 shrink-0" />
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
             ) : (
-              <ShieldAlert className="w-6 h-6 text-red-600 shrink-0" />
+              <ShieldAlert className="w-4 h-4 text-rose-600 shrink-0" />
             )}
-            <div>
-              <h2 className="font-bold text-base tracking-wide text-slate-800">
-                {isOperational ? 'Database Verification & Heartbeat Succeeded' : 'System Error - Verification Offline'}
-              </h2>
-              <p className="text-xs text-slate-600 mt-0.5">
-                {isOperational 
-                  ? 'Key fragments combined from PostgreSQL and SQLite. Daemon worker heartbeat is fresh.'
-                  : 'Checks failed. Verify PostgreSQL configuration seeds or confirm background scheduler thread is running.'}
-              </p>
-            </div>
+            <span className={`text-xs font-extrabold uppercase tracking-wider ${isOperational ? 'text-emerald-700' : 'text-rose-700'}`}>
+              {isOperational ? 'System verified' : loading ? 'Checking gateway' : 'Verification offline'}
+            </span>
+            <span className="hidden md:inline text-[11px] text-slate-400 truncate">
+              PostgreSQL, SQLite, and heartbeat checks
+            </span>
           </div>
           {isOperational && statusData.secret_code && (
-            <div className="bg-white px-4 py-2 rounded-lg border-2 border-emerald-400 shadow-sm shrink-0 w-full md:w-auto text-center md:text-left">
-              <span className="text-[9px] text-[#128807] block font-extrabold uppercase tracking-wider">Secret Clearance Code</span>
-              <code className="text-sm font-mono font-extrabold text-[#0D5C3A] tracking-wider select-all">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Clearance Code</span>
+              <code className="px-2 py-1 rounded-md bg-emerald-50 border border-emerald-200 text-[11px] sm:text-xs font-mono font-extrabold text-emerald-800 select-all">
                 {statusData.secret_code}
               </code>
             </div>
           )}
         </div>
       </div>
+    );
+  }
 
-      {/* System Diagnostics Panel */}
-      <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+  return (
+    <div className="w-full max-w-7xl mx-auto px-4 pb-10">
+      <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
           <div className="flex items-center gap-2">
-            <Activity className="w-5 h-5 text-[#0F2C59]" />
-            <h3 className="font-bold text-slate-800 text-sm md:text-base">System Gateway Diagnostic Checks</h3>
+            <Activity className="w-4 h-4 text-[#0F2C59]" />
+            <div>
+              <h3 className="font-bold text-slate-800 text-sm">System Diagnostics</h3>
+              <p className="text-[10px] text-slate-400 mt-0.5">
+                Verification details kept below the main workflow.
+              </p>
+            </div>
           </div>
           <button 
             onClick={checkStatus} 
@@ -94,10 +92,10 @@ export default function SystemStatus({ onStatusVerified }) {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {/* Key A Check */}
-          <div className="bg-slate-50 p-4 rounded-lg border border-slate-200/80 flex items-start gap-3">
-            <Key className="w-5 h-5 text-indigo-600 shrink-0 mt-0.5" />
+          <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80 flex items-start gap-2.5">
+            <Key className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
             <div className="flex-1">
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-xs text-slate-700">PostgreSQL Config</span>
@@ -116,8 +114,8 @@ export default function SystemStatus({ onStatusVerified }) {
           </div>
 
           {/* Key B Check */}
-          <div className="bg-slate-50 p-4 rounded-lg border border-slate-200/80 flex items-start gap-3">
-            <Database className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+          <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80 flex items-start gap-2.5">
+            <Database className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
             <div className="flex-1">
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-xs text-slate-700">SQLite Vault Key</span>
@@ -136,8 +134,8 @@ export default function SystemStatus({ onStatusVerified }) {
           </div>
 
           {/* Heartbeat Check */}
-          <div className="bg-slate-50 p-4 rounded-lg border border-slate-200/80 flex items-start gap-3">
-            <Activity className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+          <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80 flex items-start gap-2.5">
+            <Activity className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
             <div className="flex-1">
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-xs text-slate-700">Scheduler Heartbeat</span>
@@ -160,8 +158,8 @@ export default function SystemStatus({ onStatusVerified }) {
           </div>
         </div>
 
-        <div className="flex justify-between items-center mt-4 text-[9px] text-slate-400 border-t border-slate-100 pt-3">
-          <span>Encryption: AES-256-CBC Decryption enabled using SHA-256 key hashing</span>
+        <div className="flex flex-col sm:flex-row justify-between gap-2 mt-3 text-[9px] text-slate-400 border-t border-slate-100 pt-3">
+          <span>AES-256-CBC verification using SHA-256 key derivation</span>
           <span>Last Diagnostic Sync: {lastChecked || 'None'}</span>
         </div>
       </div>
