@@ -31,9 +31,12 @@ HI-U-PASSED-THE-DEV-CHALLENGE
 - Added optional station ID routing for unambiguous duplicate station names.
 - Used the existing SQLite graph tables: `stations`, `connections`, and `interchanges`.
 - Added route summaries, ordered itineraries, transfer markers, and leg-level route details.
+- Added real scannable QR tickets that open a live backend validation URL.
+- Added `/api/tickets/{ticket_number}/validate` for gate-style ticket validation.
 - Added a `/api/health` endpoint for API, SQLite, and PostgreSQL readiness.
 - Added focused backend tests for routing, invalid inputs, station listing, and health checks.
 - Deployed the backend, frontend, and PostgreSQL database on Railway.
+- Added a Capacitor Android wrapper that loads the deployed web app for live web updates.
 
 ## Screenshots
 
@@ -69,6 +72,12 @@ Health check:
 
 ```bash
 curl https://backend-production-15ec.up.railway.app/api/health
+```
+
+Validate a QR ticket:
+
+```bash
+curl https://backend-production-15ec.up.railway.app/api/tickets/KMETRO-469A4C56/validate
 ```
 
 System verification:
@@ -174,6 +183,39 @@ The frontend is configured with:
 ```text
 VITE_API_URL=https://backend-production-15ec.up.railway.app/api
 ```
+
+## Android APK
+
+A Capacitor Android wrapper is included under `frontend/android`.
+
+The wrapper is configured in `frontend/capacitor.config.json` to load:
+
+```text
+https://frontend-production-9fb5.up.railway.app
+```
+
+That means the installed APK behaves like a native shell for the deployed web app. When the Railway web frontend is updated, the installed APK sees the updated UI without rebuilding the APK.
+
+Build a test APK:
+
+```bash
+cd frontend/android
+.\gradlew.bat assembleDebug
+```
+
+APK output:
+
+```text
+frontend/android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+A convenience copy may also be created at:
+
+```text
+kolkata-metro-planner-live.apk
+```
+
+This is suitable for direct phone testing. For Play Store or production distribution, create a signed release APK/AAB with a private release keystore. Capacitor's `server.url` remote-loading mode is useful for demos and internal distribution; for store-grade production, prefer a PWA/TWA or a managed live-update strategy that fits the target store policy.
 
 ## Important Design Notes
 

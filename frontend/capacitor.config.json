@@ -1,0 +1,12 @@
+{
+  "appId": "com.vaibwork.kolkatametro",
+  "appName": "Kolkata Metro Planner",
+  "webDir": "dist",
+  "server": {
+    "url": "https://frontend-production-9fb5.up.railway.app",
+    "cleartext": false
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}
