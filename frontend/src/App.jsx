@@ -114,12 +114,12 @@ export default function App() {
       <SystemStatus mode="compact" onStatusVerified={handleStatusVerified} />
 
       <main className="flex-1 max-w-7xl w-full min-w-0 mx-auto px-3 sm:px-4 py-6 pb-12 overflow-hidden">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 min-w-0">
-          <div className="lg:col-span-1 min-w-0 motion-enter">
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(300px,0.85fr)_minmax(0,2.15fr)] gap-6 min-w-0">
+          <div className="min-w-0 motion-enter">
             <RouteSelector onTicketBooked={handleTicketBooked} />
           </div>
 
-          <div className="lg:col-span-2 min-w-0 motion-enter motion-delay-1">
+          <div className="min-w-0 motion-enter motion-delay-1">
             <Dashboard refreshTrigger={refreshTrigger} latestBookedTicket={latestBookedTicket} />
           </div>
         </div>

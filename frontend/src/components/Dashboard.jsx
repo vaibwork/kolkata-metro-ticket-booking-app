@@ -81,10 +81,10 @@ export default function Dashboard({ refreshTrigger, latestBookedTicket }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,2.35fr)_minmax(280px,0.95fr)] gap-6">
         
-        {/* Ticket List (Left 2 cols on wide) */}
-        <div className="lg:col-span-2 bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-sm flex flex-col min-h-[400px] min-w-0">
+        {/* Ticket List */}
+        <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-sm flex flex-col min-h-[400px] min-w-0">
           <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
             <div className="flex items-center gap-2">
               <Ticket className="w-5 h-5 text-[#0F2C59]" />
@@ -119,7 +119,7 @@ export default function Dashboard({ refreshTrigger, latestBookedTicket }) {
             </div>
           ) : (
             <div className="border border-slate-200 rounded-lg overflow-hidden">
-              <div className="hidden md:grid grid-cols-[1.15fr_1.45fr_0.8fr_0.95fr] gap-3 bg-[#0F2C59] text-white font-bold uppercase tracking-wider text-[10px] px-4 py-3">
+              <div className="hidden md:grid grid-cols-[minmax(120px,0.95fr)_minmax(260px,2.5fr)_minmax(70px,0.55fr)_minmax(92px,0.75fr)] gap-3 bg-[#0F2C59] text-white font-bold uppercase tracking-wider text-[10px] px-4 py-3">
                 <span>Ticket</span>
                 <span>Journey</span>
                 <span>Fare</span>
@@ -140,18 +140,18 @@ export default function Dashboard({ refreshTrigger, latestBookedTicket }) {
                         isSelected ? 'selected-booking-row bg-slate-100/80 border-l-4 border-l-[#0F2C59]' : ''
                       }`}
                     >
-                      <div className="grid grid-cols-1 md:grid-cols-[1.15fr_1.45fr_0.8fr_0.95fr] gap-3 md:items-center text-xs min-w-0">
+                      <div className="grid grid-cols-1 md:grid-cols-[minmax(120px,0.95fr)_minmax(260px,2.5fr)_minmax(70px,0.55fr)_minmax(92px,0.75fr)] gap-3 md:items-center text-xs min-w-0">
                         <div className="min-w-0">
                           <span className="block md:hidden text-[9px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Ticket</span>
-                          <span className="block font-mono font-bold text-slate-700 break-all">{t.ticket_number}</span>
+                          <span className="block font-mono font-bold text-slate-700 break-all md:break-normal md:text-[11px]">{t.ticket_number}</span>
                         </div>
 
                         <div className="min-w-0">
                           <span className="block md:hidden text-[9px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Journey</span>
-                          <div className="flex items-center gap-2 min-w-0">
-                            <span className="font-semibold text-slate-800 truncate">{t.source_station}</span>
+                          <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 min-w-0">
+                            <span className="font-semibold text-slate-800 break-words leading-snug">{t.source_station}</span>
                             <ArrowRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                            <span className="font-semibold text-slate-800 truncate">{t.destination_station}</span>
+                            <span className="font-semibold text-slate-800 break-words leading-snug">{t.destination_station}</span>
                           </div>
                           <span className="block text-[10px] text-slate-500 font-medium mt-1">
                             Expires {formatTime(t.expires_at)}
