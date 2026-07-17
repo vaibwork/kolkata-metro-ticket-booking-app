@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Kolkata Metro Project Walkthrough and Interview Prep</title>
+  <style>
+    @page { size: A4; margin: 12mm; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: #172033;
+      background: #fff;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 10.4px;
+      line-height: 1.36;
+    }
+    h1, h2, h3 { margin: 0; line-height: 1.15; color: #0a2540; }
+    h1 { font-size: 24px; letter-spacing: .2px; }
+    h2 { font-size: 15px; margin-top: 13px; padding-top: 8px; border-top: 1px solid #d8e0ea; }
+    h3 { font-size: 12px; margin-top: 8px; color: #12385f; }
+    p { margin: 5px 0; }
+    ul, ol { margin: 5px 0 5px 16px; padding: 0; }
+    li { margin: 2px 0; }
+    table { width: 100%; border-collapse: collapse; margin: 6px 0; page-break-inside: avoid; }
+    th, td { border: 1px solid #d8e0ea; padding: 5px 6px; vertical-align: top; }
+    th { background: #eef4fb; color: #0a2540; text-align: left; }
+    code { font-family: Consolas, "Courier New", monospace; background: #eef4fb; padding: 1px 3px; border-radius: 3px; }
+    .cover {
+      padding: 14px 16px;
+      border: 2px solid #12385f;
+      background: #f5f9ff;
+      margin-bottom: 10px;
+      page-break-inside: avoid;
+    }
+    .subtitle { margin-top: 5px; font-size: 12px; color: #3b526d; }
+    .meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px 12px;
+      margin-top: 10px;
+      font-size: 10px;
+    }
+    .pill { display: inline-block; border: 1px solid #9bb6d4; border-radius: 999px; padding: 2px 7px; background: #fff; margin: 2px 4px 2px 0; }
+    .note { border-left: 3px solid #1565c0; padding: 5px 8px; background: #f3f8ff; margin: 6px 0; page-break-inside: avoid; }
+    .warn { border-left-color: #c05a15; background: #fff8f1; }
+    .ok { border-left-color: #10845b; background: #f0fff8; }
+    .compact td, .compact th { padding: 4px 5px; }
+    .qa { page-break-inside: avoid; margin: 7px 0; }
+    .q { font-weight: 700; color: #0a2540; }
+    .a { margin-top: 2px; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .small { font-size: 9.6px; color: #3b526d; }
+    .break { page-break-before: always; }
+  </style>
+</head>
+<body>
+  <section class="cover">
+    <h1>Kolkata Metro Management System</h1>
+    <div class="subtitle">End-to-end implementation walkthrough, submission notes, and interview preparation</div>
+    <div class="meta">
+      <div><strong>Assessment stack:</strong> React + Vite, FastAPI, PostgreSQL, SQLite</div>
+      <div><strong>Verification code:</strong> <code>HI-U-PASSED-THE-DEV-CHALLENGE</code></div>
+      <div><strong>Live frontend:</strong> <code>https://frontend-production-9fb5.up.railway.app</code></div>
+      <div><strong>Live backend:</strong> <code>https://backend-production-15ec.up.railway.app</code></div>
+      <div><strong>GitHub repository:</strong> <code>https://github.com/vaibwork/kolkata-metro-ticket-booking-app.git</code></div>
+      <div><strong>APK artifact:</strong> <code>release-apk/kolkata-metro-planner-live.apk</code></div>
+      <div><strong>Current date:</strong> 17 July 2026</div>
+      <div><strong>Latest known commit:</strong> <code>b7711a3 Organize submission screenshots</code></div>
+    </div>
+  </section>
+
+  <h2>1. Original Assignment in Plain Terms</h2>
+  <p>The project started as a partially completed fictional Kolkata Metro ticket booking application. The task was not just to write new features, but to understand an unfamiliar full-stack codebase, make it run, complete missing backend and frontend functionality, and submit proof that the system works.</p>
+  <table class="compact">
+    <tr><th>Requirement</th><th>Meaning</th><th>Delivered result</th></tr>
+    <tr><td>Run the project</td><td>Install dependencies, fix setup blockers, start frontend and backend.</td><td>Local and Railway deployments were made functional.</td></tr>
+    <tr><td>Show verification code</td><td>Homepage had to prove PostgreSQL, SQLite, and heartbeat checks pass.</td><td>Code shown: <code>HI-U-PASSED-THE-DEV-CHALLENGE</code>.</td></tr>
+    <tr><td>Display all stations</td><td>Use the existing backend API and show station data in the frontend.</td><td>Frontend station list integrated with loading and error states.</td></tr>
+    <tr><td>Shortest route finder</td><td>Complete missing backend logic inside the existing endpoint, using SQLite.</td><td>Dijkstra graph engine implemented without changing database schema.</td></tr>
+    <tr><td>Integrate route finder</td><td>Let users select source and destination, then show route output.</td><td>Dropdown selection, required demo routes, route summary, full route, and leg breakdown added.</td></tr>
+    <tr><td>Submit assets</td><td>Verification code, screenshots, public repo URL, walkthrough video, and TESTIMONIAL.md.</td><td>Submission screenshots are under <code>submission-assets/</code>; TESTIMONIAL.md exists in root.</td></tr>
+  </table>
+
+  <h2>2. Final Delivered System</h2>
+  <p>The final application is a working full-stack metro route planner and QR ticket workflow. It displays stations from SQLite, calculates shortest routes from SQLite graph data, stores booked tickets in PostgreSQL, generates scannable QR codes, and exposes a validation endpoint that could be used later by a gate scanner.</p>
+  <div>
+    <span class="pill">Station browser</span>
+    <span class="pill">Shortest route finder</span>
+    <span class="pill">Fare estimate</span>
+    <span class="pill">Travel time</span>
+    <span class="pill">Interchange count</span>
+    <span class="pill">Leg breakdown</span>
+    <span class="pill">PostgreSQL ticket registry</span>
+    <span class="pill">Real QR payload</span>
+    <span class="pill">Gate validation API</span>
+    <span class="pill">Dark/light mode</span>
+    <span class="pill">Railway deployment</span>
+    <span class="pill">Capacitor APK</span>
+  </div>
+
+  <h2>3. Chronological Work Sequence</h2>
+  <ol>
+    <li><strong>Read the assessment brief.</strong> The important constraints were identified first: no schema changes, no station data changes, no new route endpoint, preserve the API contract, and use SQLite for route calculation.</li>
+    <li><strong>Cloned and inspected the repository.</strong> The codebase was separated into backend, frontend, and database setup areas. The SQLite DDL documentation was treated as the source of truth for graph structure.</li>
+    <li><strong>Fixed setup issues.</strong> Missing dependencies and path/config problems were handled so the backend and frontend could start. Frontend needed dependencies such as <code>lucide-react</code>; backend needed SQLAlchemy-related setup.</li>
+    <li><strong>Fixed SQLite access.</strong> The backend was adjusted to use the configured SQLite path relative to the repository instead of looking in the wrong module path.</li>
+    <li><strong>Integrated station listing.</strong> The frontend calls the existing station API, renders the station list, and handles loading/error states.</li>
+    <li><strong>Implemented route graph logic.</strong> SQLite stations, connections, and interchanges are loaded into a weighted graph. Dijkstra is used to find the shortest path.</li>
+    <li><strong>Handled duplicate station names.</strong> Some stations can exist across lines. The backend supports station IDs while keeping source/destination names valid, so the API remains backward compatible.</li>
+    <li><strong>Connected route planner UI.</strong> Users can select source/destination, use one-click required assessment routes, see summary metrics, then expand the full itinerary and leg breakdown.</li>
+    <li><strong>Built ticket booking flow.</strong> Route results can be booked as QR tickets, stored in PostgreSQL, and selected in the registry.</li>
+    <li><strong>Added QR validation path.</strong> QR payloads can be scanned by a normal QR scanner to reveal validation information, and a backend validation endpoint can later be used by a gate system.</li>
+    <li><strong>Improved UX.</strong> Diagnostics were made less intrusive, route details were collapsed by default, booking registry layout was improved, QR ticket was moved above registry on narrower layouts, and dark/light mode plus motion polish was added.</li>
+    <li><strong>Deployed on Railway.</strong> Backend, frontend, and PostgreSQL were deployed. The frontend deployment required Docker/static server fixes to avoid Railway build/start issues.</li>
+    <li><strong>Built Android APK.</strong> Capacitor was added as a native shell that loads the live Railway web app without a browser address bar.</li>
+    <li><strong>Captured submission screenshots.</strong> Required route screenshots were generated and organized under <code>submission-assets/</code>.</li>
+    <li><strong>Prepared repository for submission.</strong> README, TESTIMONIAL.md, screenshots, and APK artifact were pushed to the public repository.</li>
+  </ol>
+
+  <h2>4. Architecture</h2>
+  <table>
+    <tr><th>Layer</th><th>Responsibility</th><th>Main reason</th></tr>
+    <tr><td>React + Vite frontend</td><td>User interface, station selection, route display, ticket registry, QR display, theme, responsive layout.</td><td>Fast development and clear component structure.</td></tr>
+    <tr><td>FastAPI backend</td><td>REST API, route calculation, station reads, ticket operations, status diagnostics, QR validation.</td><td>Clean API layer with Python data processing.</td></tr>
+    <tr><td>SQLite</td><td>Static metro graph: stations, connections, interchanges, verification vault data.</td><td>Assessment explicitly required using the provided SQLite database and preserving station data.</td></tr>
+    <tr><td>PostgreSQL</td><td>Runtime system data: booked tickets, configuration/verification, heartbeat-backed status.</td><td>Better for server-side operational records than editing the static SQLite dataset.</td></tr>
+    <tr><td>Railway</td><td>Production hosting for frontend, backend, and PostgreSQL.</td><td>Single platform for public submission and live verification.</td></tr>
+    <tr><td>Capacitor Android</td><td>Native APK wrapper around the live web app.</td><td>Provides app-like mobile experience without an address bar and receives live web updates.</td></tr>
+  </table>
+  <p><strong>Data flow:</strong> User selects stations in React -> frontend calls FastAPI -> FastAPI reads SQLite graph -> Dijkstra calculates route -> frontend shows summary/details -> user books ticket -> FastAPI writes ticket to PostgreSQL -> frontend displays QR -> scanner can call validation endpoint.</p>
+
+  <h2>5. Backend Route Logic</h2>
+  <p>The core missing backend feature was completed in <code>backend/app/services/graph_engine.py</code>. The implementation reads the existing SQLite schema and builds a graph where each station-line record is a node. Track connections and interchange links become weighted edges.</p>
+  <table class="compact">
+    <tr><th>Concept</th><th>Implementation detail</th></tr>
+    <tr><td>Nodes</td><td>Station rows from SQLite. A visible station name can map to more than one internal station ID.</td></tr>
+    <tr><td>Train edges</td><td>Rows from the connections table. Weights use travel time and fare.</td></tr>
+    <tr><td>Interchange edges</td><td>Rows from interchanges. These allow changing lines, usually with transfer time and zero fare.</td></tr>
+    <tr><td>Algorithm</td><td>Dijkstra with a priority queue because all edge weights are non-negative.</td></tr>
+    <tr><td>Tie behavior</td><td>Routes are compared by time first and fare second, using a tuple-style cost.</td></tr>
+    <tr><td>Path output</td><td>The previous-node map reconstructs the ordered itinerary and route legs.</td></tr>
+  </table>
+  <div class="note">
+    <strong>Why Dijkstra:</strong> BFS only minimizes number of edges, not travel time or fare. Since metro segments can have different durations and interchange costs, weighted shortest path is the correct model.
+  </div>
+  <p>The route endpoint remained the existing route endpoint. Optional station IDs were added for precision, while the original source/destination name inputs still work. That preserves the API contract while solving duplicate-name ambiguity.</p>
+
+  <h2>6. Frontend Route Planner</h2>
+  <p>The frontend was upgraded from a basic/incomplete state into a working route planner. The user can choose source and destination from station data returned by the API. The app prevents invalid same-station selections and handles API failure states.</p>
+  <table class="compact">
+    <tr><th>UI area</th><th>Behavior</th></tr>
+    <tr><td>Station selectors</td><td>Loaded from API and used to pass source/destination to the route endpoint.</td></tr>
+    <tr><td>Assessment routes</td><td>One-click buttons for Dakshineswar -> VIP Bazar, Park Street -> Howrah, and Thakurpukur -> Eco Park.</td></tr>
+    <tr><td>Route summary</td><td>Shows fare, travel time, and interchanges first so the user can book quickly.</td></tr>
+    <tr><td>Full route</td><td>Collapsed by default to reduce scrolling; can be expanded for screenshot and review.</td></tr>
+    <tr><td>Leg breakdown</td><td>Collapsed by default; explains line-by-line travel and interchange sections.</td></tr>
+    <tr><td>Book button</td><td>Creates a ticket in PostgreSQL and auto-selects the new ticket in the QR panel.</td></tr>
+  </table>
+
+  <h2>7. Ticketing and QR Workflow</h2>
+  <p>The ticket flow makes the assessment feel closer to a real transit app while staying within the project scope. When a user books a route, the backend creates a ticket number like <code>KMETRO-XXXXXXXX</code>, stores fare, source, destination, expiry, and status in PostgreSQL, then returns it to the frontend.</p>
+  <p>The QR code is generated from a real payload, not a decorative image. A normal QR scanner can read it and show ticket/validation information. A future gate device could scan the QR, extract the ticket number, and call the backend validation endpoint.</p>
+  <table class="compact">
+    <tr><th>State</th><th>Validation behavior</th></tr>
+    <tr><td>Active and not expired</td><td>Gate-style response can return access granted.</td></tr>
+    <tr><td>Expired</td><td>Access denied with reason.</td></tr>
+    <tr><td>Unknown ticket</td><td>Access denied because ticket does not exist.</td></tr>
+  </table>
+
+  <h2>8. UI and UX Improvements Beyond the Minimum</h2>
+  <p>The minimum assessment only required stations and route display. Additional improvements were added carefully to make the submission more polished without violating the original API/database constraints.</p>
+  <ul>
+    <li><strong>Dark/light mode:</strong> Shows design maturity and improves accessibility across environments.</li>
+    <li><strong>Motion effects:</strong> Adds professional feedback without distracting from the workflow.</li>
+    <li><strong>Compact diagnostics:</strong> Verification details were moved away from the main interaction area so the homepage looks like an app, not a debug page.</li>
+    <li><strong>Collapsed route details:</strong> Fare, time, and interchanges are visible first; full route and leg breakdown expand only when needed.</li>
+    <li><strong>Booking registry redesign:</strong> Avoids horizontal scrolling/clipping on desktop and uses more suitable stacked behavior on smaller layouts.</li>
+    <li><strong>Auto-select new ticket:</strong> After booking, the QR appears immediately, reducing user confusion.</li>
+    <li><strong>QR above registry on mobile/narrow screens:</strong> The most important post-booking action is visible sooner.</li>
+    <li><strong>Capacitor APK:</strong> Demonstrates future mobile direction with an app-like shell.</li>
+  </ul>
+
+  <h2>9. Railway Deployment Issues and Fixes</h2>
+  <p>Deployment was part of making the work submission-ready. The backend and database were connected to Railway PostgreSQL. The frontend needed extra care because Railway's automatic detection had build/start problems.</p>
+  <table>
+    <tr><th>Issue</th><th>Cause</th><th>Fix</th></tr>
+    <tr><td>Frontend build/start failed</td><td>Railway/Railpack detected the wrong root or lacked the expected npm environment in that build context.</td><td>Added a deterministic frontend Dockerfile and deployed with the frontend path as root.</td></tr>
+    <tr><td>Frontend called localhost in production</td><td>Vite injects environment variables at build time, not runtime.</td><td>Set <code>VITE_API_URL=https://backend-production-15ec.up.railway.app/api</code> during Docker build.</td></tr>
+    <tr><td>Frontend produced 502</td><td>Vite preview and Railway start command/port handling were not reliable enough for this setup.</td><td>Added <code>frontend/server.js</code>, a Node static server that binds to <code>process.env.PORT</code>.</td></tr>
+  </table>
+  <p><strong>Final production links:</strong> frontend <code>https://frontend-production-9fb5.up.railway.app</code>, backend <code>https://backend-production-15ec.up.railway.app</code>.</p>
+
+  <h2>10. Android APK</h2>
+  <p>Capacitor was used to create an Android shell for the web app. The app opens without a browser address bar and points at the live Railway frontend. This means normal web deployment updates appear in the installed APK without rebuilding the APK.</p>
+  <div class="note warn">
+    <strong>Important production note:</strong> This is good for a demo/internal assessment APK. A real app-store production release would need a signed release key, versioning strategy, privacy/security review, and careful policy handling for remote web content.
+  </div>
+  <p><strong>APK path in repo:</strong> <code>release-apk/kolkata-metro-planner-live.apk</code>. GitHub browser link: <code>https://github.com/vaibwork/kolkata-metro-ticket-booking-app/blob/master/release-apk/kolkata-metro-planner-live.apk</code>.</p>
+
+  <h2>11. Verification and Testing</h2>
+  <table class="compact">
+    <tr><th>Check</th><th>Result</th></tr>
+    <tr><td>Backend tests</td><td><code>9 passed</code> with pytest.</td></tr>
+    <tr><td>Frontend build</td><td><code>npm run build</code> passed after fixes.</td></tr>
+    <tr><td>Live frontend</td><td>HTTP 200 from Railway frontend.</td></tr>
+    <tr><td>Live backend health</td><td>HTTP 200 from <code>/api/health</code>.</td></tr>
+    <tr><td>Live status</td><td><code>/api/status</code> returns successful diagnostics and verification code when services are healthy.</td></tr>
+    <tr><td>Station API</td><td><code>/api/allstations</code> returns station data.</td></tr>
+    <tr><td>Tickets API</td><td><code>/api/tickets</code> returns ticket registry data.</td></tr>
+  </table>
+
+  <h2>12. Submission Checklist</h2>
+  <table>
+    <tr><th>Google Form field</th><th>What to submit</th></tr>
+    <tr><td>Email, name, college, year</td><td>Your personal details.</td></tr>
+    <tr><td>Verification code</td><td><code>HI-U-PASSED-THE-DEV-CHALLENGE</code></td></tr>
+    <tr><td>Repository URL</td><td><code>https://github.com/vaibwork/kolkata-metro-ticket-booking-app.git</code></td></tr>
+    <tr><td>Homepage screenshot</td><td><code>submission-assets/homepage-screenshot.png</code></td></tr>
+    <tr><td>Route screenshots</td><td><code>screenshot-dakshineswar-vip-bazar.png</code>, <code>screenshot-park-street-howrah.png</code>, <code>screenshot-thakurpukur-eco-park.png</code></td></tr>
+    <tr><td>Walkthrough video</td><td>Record the live app: verification, station list, each required route, booking QR, registry, theme/mobile responsiveness.</td></tr>
+    <tr><td>How did you resolve bugs and execute code?</td><td>Use the answer in the next section, adjusted to your voice.</td></tr>
+  </table>
+
+  <h2>13. Suggested Form Answer</h2>
+  <p>I first reviewed the project structure, database documentation, and existing API contracts so I could fix the application without changing the intended architecture. During setup I resolved dependency/configuration problems, corrected the SQLite database path, configured the backend/frontend API connection, and verified that FastAPI, React/Vite, PostgreSQL, and SQLite were all working together.</p>
+  <p>For the station feature, I integrated the existing backend station API with the frontend and added loading/error handling. For the shortest route feature, I completed the missing backend logic inside the existing route endpoint. I used the SQLite station, connection, and interchange data to build a weighted graph and applied Dijkstra's algorithm to compute the shortest route. I kept the existing API contract and database schema unchanged, while supporting station IDs internally to avoid ambiguity where station names appear on multiple lines.</p>
+  <p>After the route calculation worked, I integrated it into the frontend with source/destination selectors, route summary, fare, travel time, interchanges, full route details, and leg breakdown. I also improved the UX beyond the minimum requirement by adding dark/light mode, better responsive layout, collapsible route details, one-click assessment routes, QR ticket booking, ticket registry, and a QR validation flow that can support future gate-scanner behavior. I deployed the backend, frontend, and PostgreSQL database on Railway, fixed production build/runtime issues using a deterministic Docker setup and Node static server, added a Capacitor Android APK shell, and verified the app with tests, builds, live health checks, and required route screenshots.</p>
+
+  <h2 class="break">14. Walkthrough Video Script</h2>
+  <ol>
+    <li>Open the live app and mention that this is a fictional assessment project, not an official metro system.</li>
+    <li>Show the verification/status area and read the clearance code.</li>
+    <li>Show the station list loaded from the backend API.</li>
+    <li>Use one-click demo route Dakshineswar -> VIP Bazar; expand full route and leg breakdown.</li>
+    <li>Repeat for Park Street -> Howrah and Thakurpukur -> Eco Park.</li>
+    <li>Book one route and show that the new ticket auto-selects.</li>
+    <li>Show the QR ticket and explain that the QR contains a scannable ticket validation payload.</li>
+    <li>Open the booking registry and show ticket status/fare/route.</li>
+    <li>Toggle dark/light mode and resize/navigate on mobile if recording supports it.</li>
+    <li>End by showing the GitHub repository, TESTIMONIAL.md, screenshots folder, and APK artifact.</li>
+  </ol>
+
+  <h2>15. Interview Questions and Strong Answers</h2>
+  <div class="qa"><div class="q">Q1. What was the main task in this assessment?</div><div class="a">To understand a partial full-stack app, fix setup issues, integrate all-stations display, implement shortest route calculation inside the existing backend endpoint using SQLite, integrate it into React, and provide submission proof through screenshots, repository, video, and TESTIMONIAL.md.</div></div>
+  <div class="qa"><div class="q">Q2. Why did you read the SQLite DDL first?</div><div class="a">Because the route logic depends on the actual schema. I needed to know how stations, connections, and interchanges were represented before building the graph. Guessing the schema would risk wrong joins or incorrect routes.</div></div>
+  <div class="qa"><div class="q">Q3. Why did you use Dijkstra's algorithm?</div><div class="a">The graph has weighted edges such as travel time and interchange cost. Dijkstra is appropriate because weights are non-negative and we need the minimum weighted path, not just the fewest stops.</div></div>
+  <div class="qa"><div class="q">Q4. Why not use BFS?</div><div class="a">BFS minimizes number of edges. A route with fewer stops may still take longer or cost more if segment weights differ. The assessment asked for shortest route using the database, so weighted path logic is more correct.</div></div>
+  <div class="qa"><div class="q">Q5. How did you model interchanges?</div><div class="a">Interchanges are graph edges between station-line nodes. They allow the route engine to move from one line representation of a station to another while applying transfer time and usually zero fare.</div></div>
+  <div class="qa"><div class="q">Q6. How did you handle duplicate station names?</div><div class="a">A station name can map to multiple station IDs on different lines. The route engine supports multi-source/multi-destination matching and the frontend can pass IDs for precise selection, while still keeping the original source/destination name contract valid.</div></div>
+  <div class="qa"><div class="q">Q7. Did you change the API contract?</div><div class="a">No. The existing route endpoint remains the route endpoint and still accepts the expected source and destination inputs. Optional IDs only improve precision and do not break existing callers.</div></div>
+  <div class="qa"><div class="q">Q8. Did you modify station data or database schema?</div><div class="a">No. The station data and schema were preserved. The implementation reads the existing SQLite data and builds runtime graph structures in memory.</div></div>
+  <div class="qa"><div class="q">Q9. What were the main bugs during setup?</div><div class="a">The important setup issues were missing dependencies, incorrect SQLite path/config expectations, frontend API base URL issues, CORS/local development configuration, and later Railway frontend build/runtime issues.</div></div>
+  <div class="qa"><div class="q">Q10. Why use SQLite and PostgreSQL both?</div><div class="a">SQLite is used for the static assessment dataset and route graph. PostgreSQL is used for operational data such as tickets, system configuration, and heartbeat/status checks. This separation avoids mutating the provided station dataset.</div></div>
+  <div class="qa"><div class="q">Q11. How does the ticket QR work?</div><div class="a">A booked ticket is stored in PostgreSQL and rendered as a QR payload. A scanner can read the payload, and a future gate can validate the ticket number through the backend validation endpoint.</div></div>
+  <div class="qa"><div class="q">Q12. Is the QR production secure?</div><div class="a">It is a strong demo foundation, but production would require signed/encrypted QR payloads, anti-replay protection, audit logs, rate limiting, and stricter expiration/device validation.</div></div>
+  <div class="qa"><div class="q">Q13. Why did you add a validation endpoint?</div><div class="a">It makes the QR workflow realistic. The QR is not only a visual artifact; it connects to a backend path that can decide whether gate access should be granted or denied.</div></div>
+  <div class="qa"><div class="q">Q14. Why did you collapse full route and leg breakdown?</div><div class="a">The user first needs fare, time, interchanges, and the book button. Full route and leg details are useful but can create too much scrolling, so they are available on demand.</div></div>
+  <div class="qa"><div class="q">Q15. Why put QR above registry on mobile?</div><div class="a">After booking, the most important output is the ticket/QR. On mobile, putting QR above the registry reduces scrolling and matches the real-life ticket-checking workflow.</div></div>
+  <div class="qa"><div class="q">Q16. Why add dark/light mode?</div><div class="a">It was not required, but it demonstrates UX thinking, accessibility awareness, and a more complete app feel without changing backend requirements.</div></div>
+  <div class="qa"><div class="q">Q17. How did you make the app responsive?</div><div class="a">The layout uses adaptive sections and reorders important panels for narrower screens. Dense tabular data is simplified so users are not forced to horizontally scroll for key ticket information.</div></div>
+  <div class="qa"><div class="q">Q18. What tests did you run?</div><div class="a">I ran backend pytest tests, frontend production builds, and live endpoint checks for frontend, backend health, status, stations, and tickets. Required screenshot routes were also verified visually.</div></div>
+  <div class="qa"><div class="q">Q19. What did Railway deployment teach you?</div><div class="a">Deployment exposed differences between local and production environments. Vite needs API URLs at build time, and a deterministic Docker/static-server setup was more reliable than relying on automatic detection.</div></div>
+  <div class="qa"><div class="q">Q20. Why was VITE_API_URL important?</div><div class="a">Vite embeds environment variables into the built JavaScript. If the production build is created without the Railway backend URL, the deployed frontend can accidentally call localhost.</div></div>
+  <div class="qa"><div class="q">Q21. Why use a Node static server?</div><div class="a">It makes the frontend startup predictable on Railway. It serves the built Vite assets and binds to the port Railway provides through <code>process.env.PORT</code>.</div></div>
+  <div class="qa"><div class="q">Q22. What is the purpose of the APK?</div><div class="a">The APK demonstrates a real mobile app direction. It opens without a browser address bar and loads the live web app, so updates deployed to Railway appear in the installed app.</div></div>
+  <div class="qa"><div class="q">Q23. What are limitations of the APK approach?</div><div class="a">It depends on network access and the live web app. For production, I would add offline handling, signed release builds, secure update policy, native splash/icon polish, and store-compliant configuration.</div></div>
+  <div class="qa"><div class="q">Q24. What would you improve with more time?</div><div class="a">Add authenticated admin tools, stronger QR security, route caching, more tests around tricky interchange routes, observability, CI/CD, accessibility audit, and a polished signed mobile release pipeline.</div></div>
+  <div class="qa"><div class="q">Q25. How would you explain your engineering approach?</div><div class="a">I first respected the constraints, then made the system run, then implemented the missing core logic, then improved reliability and UX, and finally packaged the submission with proof artifacts.</div></div>
+  <div class="qa"><div class="q">Q26. How do you know the result follows the assignment?</div><div class="a">The route endpoint was not replaced, station data/schema were not modified, SQLite is used for route calculation, the frontend displays stations and routes, and the required screenshots/repository/testimonial assets are present.</div></div>
+  <div class="qa"><div class="q">Q27. How would you debug a wrong route?</div><div class="a">I would inspect the matching source/destination IDs, print graph neighbors for those nodes, verify connection and interchange weights from SQLite, then compare the reconstructed path with expected line behavior.</div></div>
+  <div class="qa"><div class="q">Q28. How would you scale the route engine?</div><div class="a">For this dataset, in-memory Dijkstra is enough. At larger scale, I would cache the graph, precompute common paths, use better graph libraries if needed, and add performance metrics around route queries.</div></div>
+  <div class="qa"><div class="q">Q29. How would you secure the backend?</div><div class="a">Add authentication for privileged operations, rate limiting, input validation, stricter CORS, secret management, signed QR tokens, HTTPS-only deployment, and structured audit logs.</div></div>
+  <div class="qa"><div class="q">Q30. What part best shows problem-solving?</div><div class="a">The route engine and deployment fixes. The route engine required understanding schema and graph modeling; the deployment required solving build-time environment and runtime hosting differences.</div></div>
+
+  <h2>16. Key Things to Remember Before Interview</h2>
+  <ul>
+    <li>Say clearly that this is a fictional assessment project and not connected to a real transit authority.</li>
+    <li>Emphasize constraints: no schema changes, no station data modifications, no new route endpoint.</li>
+    <li>Explain Dijkstra simply: weighted graph, non-negative costs, priority queue, previous map, reconstructed path.</li>
+    <li>Explain SQLite vs PostgreSQL separation: static route dataset vs dynamic ticket/system records.</li>
+    <li>Be honest that the QR is demo-ready, while production would need signed payloads and stronger anti-fraud controls.</li>
+    <li>When asked about UI, say the goal was to make the primary workflow fast: select route, see summary, book ticket, show QR.</li>
+    <li>When asked about deployment, mention Vite build-time env variables and Railway port handling.</li>
+    <li>When asked what you learned, talk about reading existing code first, preserving contracts, and validating locally plus in production.</li>
+  </ul>
+
+  <h2>17. Final Submission Links and Files</h2>
+  <table class="compact">
+    <tr><th>Item</th><th>Value</th></tr>
+    <tr><td>Repository</td><td><code>https://github.com/vaibwork/kolkata-metro-ticket-booking-app.git</code></td></tr>
+    <tr><td>Live frontend</td><td><code>https://frontend-production-9fb5.up.railway.app</code></td></tr>
+    <tr><td>Live backend</td><td><code>https://backend-production-15ec.up.railway.app</code></td></tr>
+    <tr><td>Verification code</td><td><code>HI-U-PASSED-THE-DEV-CHALLENGE</code></td></tr>
+    <tr><td>Homepage screenshot</td><td><code>submission-assets/homepage-screenshot.png</code></td></tr>
+    <tr><td>Route screenshots</td><td><code>submission-assets/screenshot-dakshineswar-vip-bazar.png</code>, <code>submission-assets/screenshot-park-street-howrah.png</code>, <code>submission-assets/screenshot-thakurpukur-eco-park.png</code></td></tr>
+    <tr><td>APK</td><td><code>release-apk/kolkata-metro-planner-live.apk</code></td></tr>
+    <tr><td>Testimonial</td><td><code>TESTIMONIAL.md</code></td></tr>
+  </table>
+</body>
+</html>
