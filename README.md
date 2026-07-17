@@ -40,13 +40,15 @@ HI-U-PASSED-THE-DEV-CHALLENGE
 
 ## Screenshots
 
-Required assessment route screenshots are included in the repository workspace:
+Required assessment screenshots are included under `submission-assets/` for form upload:
 
-![Dakshineswar to VIP Bazar](screenshot-dakshineswar-vip-bazar.png)
+![Homepage](submission-assets/homepage-screenshot.png)
 
-![Park Street to Howrah](screenshot-park-street-howrah.png)
+![Dakshineswar to VIP Bazar](submission-assets/screenshot-dakshineswar-vip-bazar.png)
 
-![Thakurpukur to Eco Park](screenshot-thakurpukur-eco-park.png)
+![Park Street to Howrah](submission-assets/screenshot-park-street-howrah.png)
+
+![Thakurpukur to Eco Park](submission-assets/screenshot-thakurpukur-eco-park.png)
 
 ## API Examples
 
