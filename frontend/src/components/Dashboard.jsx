@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { getTickets } from '../services/api';
+import { API_BASE_URL, getTickets } from '../services/api';
 import { Ticket, Clock, RefreshCw, Barcode, CheckCircle, AlertTriangle, ArrowRight, ShieldAlert } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
+
+const buildTicketValidationUrl = (ticket) => (
+  `${API_BASE_URL.replace(/\/$/, '')}/tickets/${encodeURIComponent(ticket.ticket_number)}/validate`
+);
 
 export default function Dashboard({ refreshTrigger }) {
   const [tickets, setTickets] = useState([]);
@@ -201,25 +206,20 @@ export default function Dashboard({ refreshTrigger }) {
                   {/* Divider line */}
                   <div className="border-t border-dashed border-slate-300 my-4" />
 
-                  {/* Simulated QR Code */}
-                  <div className="bg-slate-50 p-3 rounded-lg max-w-[130px] mx-auto mb-4 border border-slate-200 flex flex-col items-center">
-                    <div className="grid grid-cols-8 gap-0.5 w-24 h-24 bg-white p-1 border border-slate-100">
-                      {[...Array(64)].map((_, i) => {
-                        const isFilled = (i % 2 === 0 && i % 3 !== 0) || (i % 5 === 0) || (i < 8 && i % 3 === 0) || (i > 56 && i % 2 !== 0);
-                        const isCorner = (i < 4 && i % 8 < 4) || (i < 32 && i >= 24 && i % 8 < 4) || (i % 8 >= 4 && i < 4);
-                        return (
-                          <div 
-                            key={`qr-${i}`} 
-                            className={`w-full h-full ${
-                              selectedTicket.status === 'ACTIVE' 
-                                ? (isFilled || isCorner ? 'bg-slate-900' : 'bg-transparent')
-                                : 'bg-slate-200'
-                            }`} 
-                          />
-                        );
-                      })}
+                  {/* Scannable QR Code */}
+                  <div className="bg-slate-50 p-3 rounded-lg max-w-[160px] mx-auto mb-4 border border-slate-200 flex flex-col items-center">
+                    <div className={`bg-white p-2 rounded-md border border-slate-100 ${selectedTicket.status === 'ACTIVE' ? '' : 'opacity-45 grayscale'}`}>
+                      <QRCodeSVG
+                        value={buildTicketValidationUrl(selectedTicket)}
+                        size={132}
+                        level="M"
+                        includeMargin={false}
+                        bgColor="#ffffff"
+                        fgColor="#0f172a"
+                      />
                     </div>
                     <span className="text-[8px] font-bold font-mono text-slate-500 mt-2 select-all tracking-wider">{selectedTicket.ticket_number}</span>
+                    <span className="text-[8px] font-semibold text-emerald-700 mt-1 uppercase tracking-wider">Scan to validate gate access</span>
                   </div>
 
                   {/* Divider line */}

@@ -68,6 +68,57 @@ class TicketResponseSchema(BaseModel):
     created_at: datetime.datetime
     expires_at: datetime.datetime
 
+class TicketValidationResponse(BaseModel):
+    ticket_number: str
+    gate_access: str
+    reason: str
+    source_station: str
+    destination_station: str
+    fare: float
+    ticket_status: str
+    server_time: datetime.datetime
+    expires_at: datetime.datetime
+
+def _as_aware_utc(value: datetime.datetime) -> datetime.datetime:
+    if value.tzinfo is None:
+        return value.replace(tzinfo=datetime.timezone.utc)
+    return value.astimezone(datetime.timezone.utc)
+
+def build_ticket_validation_response(ticket: Ticket, now: Optional[datetime.datetime] = None) -> dict:
+    """
+    Builds the gate-scanner response for a stored ticket without mutating ticket state.
+    """
+    server_time = now or datetime.datetime.now(datetime.timezone.utc)
+    server_time = _as_aware_utc(server_time)
+    expires_at = _as_aware_utc(ticket.expires_at)
+    status = ticket.status
+
+    if status == "USED":
+        gate_access = "DENIED"
+        reason = "Ticket has already been used."
+    elif status != "ACTIVE":
+        gate_access = "DENIED"
+        reason = f"Ticket status is {status}."
+    elif expires_at <= server_time:
+        gate_access = "DENIED"
+        status = "EXPIRED"
+        reason = "Ticket has expired."
+    else:
+        gate_access = "GRANTED"
+        reason = "Ticket is active and within the validity window."
+
+    return {
+        "ticket_number": ticket.ticket_number,
+        "gate_access": gate_access,
+        "reason": reason,
+        "source_station": ticket.source_station,
+        "destination_station": ticket.destination_station,
+        "fare": float(ticket.fare),
+        "ticket_status": status,
+        "server_time": server_time,
+        "expires_at": expires_at,
+    }
+
 # --- API Endpoints ---
 
 @router.get("/status", response_model=SystemStatusResponse)
@@ -132,6 +183,17 @@ def list_tickets(db: Session = Depends(get_db)):
         return tickets
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch tickets: {str(e)}")
+
+@router.get("/tickets/{ticket_number}/validate", response_model=TicketValidationResponse)
+def validate_ticket(ticket_number: str, db: Session = Depends(get_db)):
+    """
+    Read-only gate validation endpoint for QR scanners.
+    """
+    ticket = db.query(Ticket).filter(Ticket.ticket_number == ticket_number).first()
+    if not ticket:
+        raise HTTPException(status_code=404, detail="Ticket not found.")
+
+    return build_ticket_validation_response(ticket)
 
 @router.post("/tickets", response_model=TicketResponseSchema, status_code=201)
 def purchase_ticket(ticket_data: TicketCreateSchema, db: Session = Depends(get_db)):
