@@ -109,6 +109,10 @@ html[data-theme='dark'] body {
   color: #eaf2ff !important;
 }
 
+.theme-dark .selected-booking-row span {
+  color: #eaf2ff;
+}
+
 .theme-dark .selected-booking-row .text-\[\#128807\],
 .theme-dark .selected-booking-row .text-emerald-600,
 .theme-dark .selected-booking-row .text-emerald-700 {

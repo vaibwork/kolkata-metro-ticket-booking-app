@@ -278,7 +278,7 @@ export default function RouteSelector({ onTicketBooked }) {
       const response = await bookTicket(src, dest, fare, 30); // expires in 30 minutes
       setSuccessMsg(`Ticket booked successfully! Number: ${response.data.ticket_number}`);
       if (onTicketBooked) {
-        onTicketBooked();
+        onTicketBooked(response.data);
       }
     } catch (err) {
       console.error(err);

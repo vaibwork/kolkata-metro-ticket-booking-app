@@ -6,6 +6,7 @@ import { Moon, ShieldCheck, Sun, Train } from 'lucide-react';
 
 export default function App() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [latestBookedTicket, setLatestBookedTicket] = useState(null);
   const [isSystemUnlocked, setIsSystemUnlocked] = useState(false);
   const [theme, setTheme] = useState(() => {
     const themeParam = new URLSearchParams(window.location.search).get('theme');
@@ -19,7 +20,8 @@ export default function App() {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
 
-  const handleTicketBooked = () => {
+  const handleTicketBooked = (ticket) => {
+    setLatestBookedTicket(ticket);
     setRefreshTrigger((prev) => prev + 1);
   };
 
@@ -118,7 +120,7 @@ export default function App() {
           </div>
 
           <div className="lg:col-span-2 min-w-0 motion-enter motion-delay-1">
-            <Dashboard refreshTrigger={refreshTrigger} />
+            <Dashboard refreshTrigger={refreshTrigger} latestBookedTicket={latestBookedTicket} />
           </div>
         </div>
       </main>

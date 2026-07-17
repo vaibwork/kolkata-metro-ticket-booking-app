@@ -7,7 +7,7 @@ const buildTicketValidationUrl = (ticket) => (
   `${API_BASE_URL.replace(/\/$/, '')}/tickets/${encodeURIComponent(ticket.ticket_number)}/validate`
 );
 
-export default function Dashboard({ refreshTrigger }) {
+export default function Dashboard({ refreshTrigger, latestBookedTicket }) {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -19,8 +19,17 @@ export default function Dashboard({ refreshTrigger }) {
     try {
       const response = await getTickets();
       setTickets(response.data);
-      if (response.data.length > 0 && !selectedTicket) {
-        setSelectedTicket(response.data[0]);
+      if (response.data.length > 0) {
+        const latestMatch = latestBookedTicket
+          ? response.data.find((ticket) => ticket.ticket_number === latestBookedTicket.ticket_number)
+          : null;
+        const selectedStillExists = selectedTicket
+          ? response.data.find((ticket) => ticket.id === selectedTicket.id)
+          : null;
+
+        setSelectedTicket(latestMatch || selectedStillExists || response.data[0]);
+      } else {
+        setSelectedTicket(null);
       }
     } catch (err) {
       console.error(err);
@@ -109,36 +118,53 @@ export default function Dashboard({ refreshTrigger }) {
               <p className="text-[11px] text-slate-400 max-w-xs mt-1">Select source and destination routes on the left panel to issue a QR ticket.</p>
             </div>
           ) : (
-            <div className="overflow-x-auto border border-slate-200 rounded-lg">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="bg-[#0F2C59] text-white font-bold uppercase tracking-wider text-[10px]">
-                    <th className="py-3 px-4">Ticket Number</th>
-                    <th className="py-3 px-4">Origin</th>
-                    <th className="py-3 px-4">Destination</th>
-                    <th className="py-3 px-4">Fare Paid</th>
-                    <th className="py-3 px-4">Status</th>
-                    <th className="py-3 px-4">Expires At</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200">
-                  {tickets.map((t) => {
-                    const isSelected = selectedTicket?.id === t.id;
-                    const isActive = t.status === 'ACTIVE';
-                    
-                    return (
-                      <tr 
-                        key={t.id}
-                        onClick={() => setSelectedTicket(t)}
-                        className={`booking-row cursor-pointer transition hover:bg-slate-50 ${
-                          isSelected ? 'selected-booking-row bg-slate-100/80 border-l-4 border-l-[#0F2C59]' : ''
-                        }`}
-                      >
-                        <td className="py-3.5 px-4 font-mono font-bold text-slate-700">{t.ticket_number}</td>
-                        <td className="py-3.5 px-4 font-semibold text-slate-800">{t.source_station}</td>
-                        <td className="py-3.5 px-4 font-semibold text-slate-800">{t.destination_station}</td>
-                        <td className="py-3.5 px-4 font-bold text-[#128807]">INR {t.fare}</td>
-                        <td className="py-3.5 px-4">
+            <div className="border border-slate-200 rounded-lg overflow-hidden">
+              <div className="hidden md:grid grid-cols-[1.15fr_1.45fr_0.8fr_0.95fr] gap-3 bg-[#0F2C59] text-white font-bold uppercase tracking-wider text-[10px] px-4 py-3">
+                <span>Ticket</span>
+                <span>Journey</span>
+                <span>Fare</span>
+                <span>Status</span>
+              </div>
+
+              <div className="divide-y divide-slate-200">
+                {tickets.map((t) => {
+                  const isSelected = selectedTicket?.id === t.id;
+                  const isActive = t.status === 'ACTIVE';
+                  
+                  return (
+                    <button
+                      type="button"
+                      key={t.id}
+                      onClick={() => setSelectedTicket(t)}
+                      className={`booking-row w-full text-left cursor-pointer transition hover:bg-slate-50 px-3 sm:px-4 py-3 ${
+                        isSelected ? 'selected-booking-row bg-slate-100/80 border-l-4 border-l-[#0F2C59]' : ''
+                      }`}
+                    >
+                      <div className="grid grid-cols-1 md:grid-cols-[1.15fr_1.45fr_0.8fr_0.95fr] gap-3 md:items-center text-xs min-w-0">
+                        <div className="min-w-0">
+                          <span className="block md:hidden text-[9px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Ticket</span>
+                          <span className="block font-mono font-bold text-slate-700 break-all">{t.ticket_number}</span>
+                        </div>
+
+                        <div className="min-w-0">
+                          <span className="block md:hidden text-[9px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Journey</span>
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="font-semibold text-slate-800 truncate">{t.source_station}</span>
+                            <ArrowRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                            <span className="font-semibold text-slate-800 truncate">{t.destination_station}</span>
+                          </div>
+                          <span className="block text-[10px] text-slate-500 font-medium mt-1">
+                            Expires {formatTime(t.expires_at)}
+                          </span>
+                        </div>
+
+                        <div>
+                          <span className="block md:hidden text-[9px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Fare</span>
+                          <span className="font-bold text-[#128807]">INR {t.fare}</span>
+                        </div>
+
+                        <div>
+                          <span className="block md:hidden text-[9px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Status</span>
                           <span className={`text-[9px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider inline-flex items-center gap-1 border ${
                             isActive 
                               ? 'bg-emerald-50 border-emerald-300 text-emerald-700 animate-pulse-soft' 
@@ -147,15 +173,12 @@ export default function Dashboard({ refreshTrigger }) {
                             <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-emerald-500' : 'bg-slate-400'}`} />
                             {t.status}
                           </span>
-                        </td>
-                        <td className="py-3.5 px-4 text-slate-500 font-medium">
-                          {formatTime(t.expires_at)}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>
