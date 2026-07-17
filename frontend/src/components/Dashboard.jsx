@@ -1,6 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { API_BASE_URL, getTickets } from '../services/api';
-import { Ticket, Clock, RefreshCw, Barcode, CheckCircle, AlertTriangle, ArrowRight, ShieldAlert } from 'lucide-react';
+import {
+  Ticket,
+  Clock,
+  RefreshCw,
+  Barcode,
+  CheckCircle,
+  AlertTriangle,
+  ArrowRight,
+  ShieldAlert,
+  ChevronDown,
+} from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
 const buildTicketValidationUrl = (ticket) => (
@@ -12,6 +22,7 @@ export default function Dashboard({ refreshTrigger, latestBookedTicket }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedTicket, setSelectedTicket] = useState(null);
+  const [showRegistry, setShowRegistry] = useState(true);
 
   const fetchTickets = async () => {
     setLoading(true);
@@ -51,10 +62,22 @@ export default function Dashboard({ refreshTrigger, latestBookedTicket }) {
     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' ' + d.toLocaleDateString('en-IN');
   };
 
+  const renderStatusBadge = (status) => {
+    const isActive = status === 'ACTIVE';
+    return (
+      <span className={`text-[9px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider inline-flex items-center gap-1 border ${
+        isActive
+          ? 'bg-emerald-50 border-emerald-300 text-emerald-700 animate-pulse-soft'
+          : 'bg-slate-50 border-slate-200 text-slate-500'
+      }`}>
+        <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+        {status}
+      </span>
+    );
+  };
+
   return (
     <div className="space-y-6 min-w-0">
-      
-      {/* Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm flex items-center justify-between">
           <div>
@@ -81,217 +104,221 @@ export default function Dashboard({ refreshTrigger, latestBookedTicket }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,2.35fr)_minmax(280px,0.95fr)] gap-6">
-        
-        {/* Ticket List */}
-        <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-sm flex flex-col min-h-[400px] min-w-0">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
-            <div className="flex items-center gap-2">
-              <Ticket className="w-5 h-5 text-[#0F2C59]" />
-              <h3 className="font-bold text-slate-800 text-sm md:text-base">Booking Registry</h3>
-            </div>
-            <button
-              onClick={fetchTickets}
-              disabled={loading}
-              className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-500 hover:text-slate-700 transition disabled:opacity-50"
-            >
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            </button>
-          </div>
-
-          {error && (
-            <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-xs flex items-start gap-2 mb-4">
-              <ShieldAlert className="w-5 h-5 shrink-0 text-red-500" />
-              <span>{error}</span>
-            </div>
-          )}
-
-          {loading && tickets.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center text-slate-400 py-10">
-              <RefreshCw className="w-8 h-8 animate-spin text-[#0F2C59] mb-3" />
-              <p className="text-xs">Fetching transactions from PostgreSQL...</p>
-            </div>
-          ) : tickets.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center text-slate-400 py-10 text-center">
-              <Ticket className="w-12 h-12 text-slate-200 mb-3" />
-              <p className="font-bold text-slate-500 text-sm">No ticket bookings detected</p>
-              <p className="text-[11px] text-slate-400 max-w-xs mt-1">Select source and destination routes on the left panel to issue a QR ticket.</p>
-            </div>
-          ) : (
-            <div className="border border-slate-200 rounded-lg overflow-hidden">
-              <div className="hidden md:grid grid-cols-[minmax(120px,0.95fr)_minmax(260px,2.5fr)_minmax(70px,0.55fr)_minmax(92px,0.75fr)] gap-3 bg-[#0F2C59] text-white font-bold uppercase tracking-wider text-[10px] px-4 py-3">
-                <span>Ticket</span>
-                <span>Journey</span>
-                <span>Fare</span>
-                <span>Status</span>
-              </div>
-
-              <div className="divide-y divide-slate-200">
-                {tickets.map((t) => {
-                  const isSelected = selectedTicket?.id === t.id;
-                  const isActive = t.status === 'ACTIVE';
-                  
-                  return (
-                    <button
-                      type="button"
-                      key={t.id}
-                      onClick={() => setSelectedTicket(t)}
-                      className={`booking-row w-full text-left cursor-pointer transition hover:bg-slate-50 px-3 sm:px-4 py-3 ${
-                        isSelected ? 'selected-booking-row bg-slate-100/80 border-l-4 border-l-[#0F2C59]' : ''
-                      }`}
-                    >
-                      <div className="grid grid-cols-1 md:grid-cols-[minmax(120px,0.95fr)_minmax(260px,2.5fr)_minmax(70px,0.55fr)_minmax(92px,0.75fr)] gap-3 md:items-center text-xs min-w-0">
-                        <div className="min-w-0">
-                          <span className="block md:hidden text-[9px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Ticket</span>
-                          <span className="block font-mono font-bold text-slate-700 break-all md:break-normal md:text-[11px]">{t.ticket_number}</span>
-                        </div>
-
-                        <div className="min-w-0">
-                          <span className="block md:hidden text-[9px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Journey</span>
-                          <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 min-w-0">
-                            <span className="font-semibold text-slate-800 break-words leading-snug">{t.source_station}</span>
-                            <ArrowRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                            <span className="font-semibold text-slate-800 break-words leading-snug">{t.destination_station}</span>
-                          </div>
-                          <span className="block text-[10px] text-slate-500 font-medium mt-1">
-                            Expires {formatTime(t.expires_at)}
-                          </span>
-                        </div>
-
-                        <div>
-                          <span className="block md:hidden text-[9px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Fare</span>
-                          <span className="font-bold text-[#128807]">INR {t.fare}</span>
-                        </div>
-
-                        <div>
-                          <span className="block md:hidden text-[9px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Status</span>
-                          <span className={`text-[9px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider inline-flex items-center gap-1 border ${
-                            isActive 
-                              ? 'bg-emerald-50 border-emerald-300 text-emerald-700 animate-pulse-soft' 
-                              : 'bg-slate-50 border-slate-200 text-slate-500'
-                          }`}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-emerald-500' : 'bg-slate-400'}`} />
-                            {t.status}
-                          </span>
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+      <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-sm min-w-0">
+        <div className="flex items-center gap-2 border-b border-slate-100 pb-4 mb-4">
+          <Barcode className="w-5 h-5 text-[#0F2C59]" />
+          <h3 className="font-bold text-slate-800 text-sm md:text-base">QR Ticket</h3>
         </div>
 
-        {/* Ticket QR/Detail Card View (Right 1 col on wide) */}
-        <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-sm flex flex-col justify-between min-w-0">
-          <div>
-            <div className="flex items-center gap-2 border-b border-slate-100 pb-4 mb-4">
-              <Barcode className="w-5 h-5 text-[#0F2C59]" />
-              <h3 className="font-bold text-slate-800 text-sm md:text-base">QR Ticket</h3>
-            </div>
+        {selectedTicket ? (
+          <div className="grid grid-cols-1 lg:grid-cols-[minmax(280px,360px)_minmax(0,1fr)] gap-5 items-start">
+            <div className="bg-white p-5 rounded-xl border border-slate-300 text-slate-800 shadow-sm relative overflow-hidden">
+              <div className="absolute top-1/2 -left-3.5 w-7 h-7 rounded-full bg-slate-50 border border-slate-300" />
+              <div className="absolute top-1/2 -right-3.5 w-7 h-7 rounded-full bg-slate-50 border border-slate-300" />
 
-            {selectedTicket ? (
-              <div className="space-y-6">
-                
-                {/* Thermal printed paper train ticket mockup */}
-                <div className="bg-white p-5 rounded-xl border border-slate-300 text-slate-800 shadow-sm relative overflow-hidden">
-                  
-                  {/* Decorative cutouts (Ticket punches) */}
-                  <div className="absolute top-1/2 -left-3.5 w-7 h-7 rounded-full bg-slate-50 border border-slate-300" />
-                  <div className="absolute top-1/2 -right-3.5 w-7 h-7 rounded-full bg-slate-50 border border-slate-300" />
+              <div className="flex justify-between items-center text-[9px] uppercase font-extrabold tracking-widest text-slate-900 mb-4 border-b border-slate-200 pb-2">
+                <span>Kolkata Metro Rail</span>
+                <span className="font-mono">{selectedTicket.ticket_number}</span>
+              </div>
 
-                  {/* Header */}
-                  <div className="flex justify-between items-center text-[9px] uppercase font-extrabold tracking-widest text-slate-900 mb-4 border-b border-slate-200 pb-2">
-                    <span>Kolkata Metro Rail</span>
-                    <span className="font-mono">{selectedTicket.ticket_number}</span>
-                  </div>
-
-                  {/* Journey details */}
-                  <div className="space-y-2 mb-4 text-xs">
-                    <div>
-                      <span className="text-[9px] uppercase font-bold text-slate-400 block">Boarding Station</span>
-                      <span className="font-bold text-slate-800">{selectedTicket.source_station}</span>
-                    </div>
-                    
-                    <div className="flex items-center gap-2 py-0.5">
-                      <div className="h-px bg-slate-200 flex-1 border-dashed border-b" />
-                      <ArrowRight className="w-3.5 h-3.5 text-[#0F2C59]" />
-                      <div className="h-px bg-slate-200 flex-1 border-dashed border-b" />
-                    </div>
-
-                    <div>
-                      <span className="text-[9px] uppercase font-bold text-slate-400 block">Destination Station</span>
-                      <span className="font-bold text-slate-800">{selectedTicket.destination_station}</span>
-                    </div>
-                  </div>
-
-                  {/* Divider line */}
-                  <div className="border-t border-dashed border-slate-300 my-4" />
-
-                  {/* Scannable QR Code */}
-                  <div className="bg-slate-50 p-3 rounded-lg max-w-[160px] mx-auto mb-4 border border-slate-200 flex flex-col items-center">
-                    <div className={`qr-scan-surface bg-white p-2 rounded-md border border-slate-100 ${selectedTicket.status === 'ACTIVE' ? '' : 'opacity-45 grayscale'}`}>
-                      <QRCodeSVG
-                        value={buildTicketValidationUrl(selectedTicket)}
-                        size={132}
-                        level="M"
-                        includeMargin={false}
-                        bgColor="#ffffff"
-                        fgColor="#0f172a"
-                      />
-                    </div>
-                    <span className="text-[8px] font-bold font-mono text-slate-500 mt-2 select-all tracking-wider">{selectedTicket.ticket_number}</span>
-                    <span className="text-[8px] font-semibold text-emerald-700 mt-1 uppercase tracking-wider">Scan to validate gate access</span>
-                  </div>
-
-                  {/* Divider line */}
-                  <div className="border-t border-dashed border-slate-300 my-4" />
-
-                  {/* Footer */}
-                  <div className="flex items-center justify-between pt-1 text-[9px] font-bold">
-                    <div>
-                      <span className="text-slate-400 block uppercase">Fare Paid</span>
-                      <span className="text-[#128807] font-extrabold text-sm">INR {selectedTicket.fare}</span>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-slate-400 block uppercase">Status</span>
-                      <span className={`font-bold uppercase text-[9px] px-1.5 py-0.5 rounded border ${
-                        selectedTicket.status === 'ACTIVE'
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                          : 'bg-slate-100 text-slate-500 border-slate-200'
-                      }`}>
-                        {selectedTicket.status}
-                      </span>
-                    </div>
-                  </div>
+              <div className="space-y-2 mb-4 text-xs">
+                <div>
+                  <span className="text-[9px] uppercase font-bold text-slate-400 block">Boarding Station</span>
+                  <span className="font-bold text-slate-800">{selectedTicket.source_station}</span>
                 </div>
 
-                {/* Expiration warning banner */}
-                {selectedTicket.status === 'ACTIVE' ? (
-                  <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg text-[10px] text-slate-600 flex items-start gap-2">
-                    <Clock className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                    <div>
-                      <span>Expires: <strong className="text-slate-800">{formatTime(selectedTicket.expires_at)}</strong>. Valid for one-way journey within 30 minutes from booking.</span>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="bg-slate-50 border border-slate-200 p-3 rounded-lg text-[10px] text-slate-500 flex items-start gap-2">
-                    <AlertTriangle className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
-                    <div>
-                      <span>This QR ticket is expired. Please generate a new transit token from the route planner.</span>
-                    </div>
-                  </div>
-                )}
+                <div className="flex items-center gap-2 py-0.5">
+                  <div className="h-px bg-slate-200 flex-1 border-dashed border-b" />
+                  <ArrowRight className="w-3.5 h-3.5 text-[#0F2C59]" />
+                  <div className="h-px bg-slate-200 flex-1 border-dashed border-b" />
+                </div>
+
+                <div>
+                  <span className="text-[9px] uppercase font-bold text-slate-400 block">Destination Station</span>
+                  <span className="font-bold text-slate-800">{selectedTicket.destination_station}</span>
+                </div>
+              </div>
+
+              <div className="border-t border-dashed border-slate-300 my-4" />
+
+              <div className="bg-slate-50 p-3 rounded-lg max-w-[180px] mx-auto mb-4 border border-slate-200 flex flex-col items-center">
+                <div className={`qr-scan-surface bg-white p-2 rounded-md border border-slate-100 ${selectedTicket.status === 'ACTIVE' ? '' : 'opacity-45 grayscale'}`}>
+                  <QRCodeSVG
+                    value={buildTicketValidationUrl(selectedTicket)}
+                    size={148}
+                    level="M"
+                    includeMargin={false}
+                    bgColor="#ffffff"
+                    fgColor="#0f172a"
+                  />
+                </div>
+                <span className="text-[8px] font-bold font-mono text-slate-500 mt-2 select-all tracking-wider">{selectedTicket.ticket_number}</span>
+                <span className="text-[8px] font-semibold text-emerald-700 mt-1 uppercase tracking-wider">Scan to validate gate access</span>
+              </div>
+
+              <div className="border-t border-dashed border-slate-300 my-4" />
+
+              <div className="flex items-center justify-between pt-1 text-[9px] font-bold">
+                <div>
+                  <span className="text-slate-400 block uppercase">Fare Paid</span>
+                  <span className="text-[#128807] font-extrabold text-sm">INR {selectedTicket.fare}</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-slate-400 block uppercase">Status</span>
+                  <span className={`font-bold uppercase text-[9px] px-1.5 py-0.5 rounded border ${
+                    selectedTicket.status === 'ACTIVE'
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                      : 'bg-slate-100 text-slate-500 border-slate-200'
+                  }`}>
+                    {selectedTicket.status}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                  <span className="text-[9px] uppercase font-bold text-slate-400 block">Ticket</span>
+                  <span className="font-mono text-xs font-bold text-slate-800 break-all">{selectedTicket.ticket_number}</span>
+                </div>
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                  <span className="text-[9px] uppercase font-bold text-slate-400 block">Fare</span>
+                  <span className="text-sm font-extrabold text-[#128807]">INR {selectedTicket.fare}</span>
+                </div>
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                  <span className="text-[9px] uppercase font-bold text-slate-400 block">Status</span>
+                  <span className="mt-1 inline-flex">{renderStatusBadge(selectedTicket.status)}</span>
+                </div>
+              </div>
+
+              {selectedTicket.status === 'ACTIVE' ? (
+                <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg text-[10px] text-slate-600 flex items-start gap-2">
+                  <Clock className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <span>Expires: <strong className="text-slate-800">{formatTime(selectedTicket.expires_at)}</strong>. Valid for one-way journey within 30 minutes from booking.</span>
+                </div>
+              ) : (
+                <div className="bg-slate-50 border border-slate-200 p-3 rounded-lg text-[10px] text-slate-500 flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
+                  <span>This QR ticket is expired. Please generate a new transit token from the route planner.</span>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center text-slate-400 py-10 text-center">
+            <Ticket className="w-10 h-10 text-slate-200 mb-2" />
+            <p className="text-xs">Select a purchased ticket to reveal its ticket properties and boarding code.</p>
+          </div>
+        )}
+      </div>
+
+      <div className="bg-white border border-slate-200 rounded-xl shadow-sm min-w-0 overflow-hidden">
+        <div className="flex items-center justify-between gap-3 border-b border-slate-100 p-4 sm:p-5">
+          <button
+            type="button"
+            onClick={() => setShowRegistry((value) => !value)}
+            className="flex items-center gap-2 min-w-0 text-left"
+            aria-expanded={showRegistry}
+          >
+            <Ticket className="w-5 h-5 text-[#0F2C59] shrink-0" />
+            <div className="min-w-0">
+              <h3 className="font-bold text-slate-800 text-sm md:text-base">Booking Registry</h3>
+              <p className="text-[10px] text-slate-400 font-semibold mt-0.5">
+                {tickets.length} ticket records {selectedTicket ? `- selected ${selectedTicket.ticket_number}` : ''}
+              </p>
+            </div>
+            <ChevronDown className={`w-4 h-4 text-slate-500 shrink-0 transition-transform ${showRegistry ? 'rotate-180' : ''}`} />
+          </button>
+
+          <button
+            onClick={fetchTickets}
+            disabled={loading}
+            className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-500 hover:text-slate-700 transition disabled:opacity-50 shrink-0"
+            aria-label="Refresh booking registry"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
+
+        {showRegistry && (
+          <div className="p-4 sm:p-5">
+            {error && (
+              <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-xs flex items-start gap-2 mb-4">
+                <ShieldAlert className="w-5 h-5 shrink-0 text-red-500" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            {loading && tickets.length === 0 ? (
+              <div className="flex flex-col items-center justify-center text-slate-400 py-10">
+                <RefreshCw className="w-8 h-8 animate-spin text-[#0F2C59] mb-3" />
+                <p className="text-xs">Fetching transactions from PostgreSQL...</p>
+              </div>
+            ) : tickets.length === 0 ? (
+              <div className="flex flex-col items-center justify-center text-slate-400 py-10 text-center">
+                <Ticket className="w-12 h-12 text-slate-200 mb-3" />
+                <p className="font-bold text-slate-500 text-sm">No ticket bookings detected</p>
+                <p className="text-[11px] text-slate-400 max-w-xs mt-1">Select source and destination routes on the left panel to issue a QR ticket.</p>
               </div>
             ) : (
-              <div className="flex-1 flex flex-col items-center justify-center text-slate-400 py-10 text-center">
-                <Ticket className="w-10 h-10 text-slate-200 mb-2" />
-                <p className="text-xs">Select a purchased ticket to reveal its ticket properties and boarding code.</p>
+              <div className="border border-slate-200 rounded-lg overflow-hidden">
+                <div className="hidden md:grid grid-cols-[minmax(150px,0.85fr)_minmax(360px,2.7fr)_minmax(90px,0.45fr)_minmax(110px,0.5fr)] gap-3 bg-[#0F2C59] text-white font-bold uppercase tracking-wider text-[10px] px-4 py-3">
+                  <span>Ticket</span>
+                  <span>Journey</span>
+                  <span>Fare</span>
+                  <span>Status</span>
+                </div>
+
+                <div className="divide-y divide-slate-200">
+                  {tickets.map((t) => {
+                    const isSelected = selectedTicket?.id === t.id;
+
+                    return (
+                      <button
+                        type="button"
+                        key={t.id}
+                        onClick={() => setSelectedTicket(t)}
+                        className={`booking-row w-full text-left cursor-pointer transition hover:bg-slate-50 px-3 sm:px-4 py-3 ${
+                          isSelected ? 'selected-booking-row bg-slate-100/80 border-l-4 border-l-[#0F2C59]' : ''
+                        }`}
+                      >
+                        <div className="grid grid-cols-1 md:grid-cols-[minmax(150px,0.85fr)_minmax(360px,2.7fr)_minmax(90px,0.45fr)_minmax(110px,0.5fr)] gap-3 md:items-center text-xs min-w-0">
+                          <div className="min-w-0">
+                            <span className="block md:hidden text-[9px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Ticket</span>
+                            <span className="block font-mono font-bold text-slate-700 break-all md:break-normal md:text-[11px]">{t.ticket_number}</span>
+                          </div>
+
+                          <div className="min-w-0">
+                            <span className="block md:hidden text-[9px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Journey</span>
+                            <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 min-w-0">
+                              <span className="font-semibold text-slate-800 break-words leading-snug">{t.source_station}</span>
+                              <ArrowRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                              <span className="font-semibold text-slate-800 break-words leading-snug">{t.destination_station}</span>
+                            </div>
+                            <span className="block text-[10px] text-slate-500 font-medium mt-1">
+                              Expires {formatTime(t.expires_at)}
+                            </span>
+                          </div>
+
+                          <div>
+                            <span className="block md:hidden text-[9px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Fare</span>
+                            <span className="font-bold text-[#128807]">INR {t.fare}</span>
+                          </div>
+
+                          <div>
+                            <span className="block md:hidden text-[9px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Status</span>
+                            {renderStatusBadge(t.status)}
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             )}
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
