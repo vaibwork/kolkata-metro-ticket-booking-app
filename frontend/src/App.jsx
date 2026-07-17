@@ -1,12 +1,23 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import SystemStatus from './components/SystemStatus';
 import RouteSelector from './components/RouteSelector';
 import Dashboard from './components/Dashboard';
-import { ShieldCheck, Train } from 'lucide-react';
+import { Moon, ShieldCheck, Sun, Train } from 'lucide-react';
 
 export default function App() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [isSystemUnlocked, setIsSystemUnlocked] = useState(false);
+  const [theme, setTheme] = useState(() => {
+    const themeParam = new URLSearchParams(window.location.search).get('theme');
+    return themeParam === 'dark' || themeParam === 'light'
+      ? themeParam
+      : localStorage.getItem('metro-theme') || 'light';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('metro-theme', theme);
+    document.documentElement.dataset.theme = theme;
+  }, [theme]);
 
   const handleTicketBooked = () => {
     setRefreshTrigger((prev) => prev + 1);
@@ -17,7 +28,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen text-slate-800 flex flex-col font-sans bg-slate-50 overflow-x-hidden">
+    <div className={`min-h-screen text-slate-800 flex flex-col font-sans bg-slate-50 overflow-x-hidden transition-colors duration-300 ${theme === 'dark' ? 'theme-dark' : 'theme-light'}`}>
       <div className="h-1.5 w-full flex">
         <div className="bg-[#FF9933] w-1/3 h-full" />
         <div className="bg-white w-1/3 h-full" />
@@ -63,24 +74,36 @@ export default function App() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 shadow-inner shrink-0">
-            <span className="relative flex h-2.5 w-2.5">
-              <span
-                className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                  isSystemUnlocked ? 'bg-emerald-500' : 'bg-rose-500'
-                }`}
-              />
-              <span
-                className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
-                  isSystemUnlocked ? 'bg-emerald-600' : 'bg-rose-600'
-                }`}
-              />
-            </span>
-            <div className="text-left">
-              <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Assessment Gateway</span>
-              <span className="text-xs font-bold text-slate-700">
-                {isSystemUnlocked ? 'Verification Active' : 'Offline Mode'}
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => setTheme((current) => current === 'dark' ? 'light' : 'dark')}
+              className="h-11 w-11 rounded-lg border border-slate-200 bg-slate-50 text-slate-600 shadow-inner flex items-center justify-center transition hover:-translate-y-0.5 hover:shadow-md"
+              aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+              title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+            >
+              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
+
+            <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 shadow-inner">
+              <span className="relative flex h-2.5 w-2.5">
+                <span
+                  className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                    isSystemUnlocked ? 'bg-emerald-500' : 'bg-rose-500'
+                  }`}
+                />
+                <span
+                  className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
+                    isSystemUnlocked ? 'bg-emerald-600' : 'bg-rose-600'
+                  }`}
+                />
               </span>
+              <div className="text-left">
+                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Assessment Gateway</span>
+                <span className="text-xs font-bold text-slate-700">
+                  {isSystemUnlocked ? 'Verification Active' : 'Offline Mode'}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -90,11 +113,11 @@ export default function App() {
 
       <main className="flex-1 max-w-7xl w-full min-w-0 mx-auto px-3 sm:px-4 py-6 pb-12 overflow-hidden">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 min-w-0">
-          <div className="lg:col-span-1 min-w-0">
+          <div className="lg:col-span-1 min-w-0 motion-enter">
             <RouteSelector onTicketBooked={handleTicketBooked} />
           </div>
 
-          <div className="lg:col-span-2 min-w-0">
+          <div className="lg:col-span-2 min-w-0 motion-enter motion-delay-1">
             <Dashboard refreshTrigger={refreshTrigger} />
           </div>
         </div>

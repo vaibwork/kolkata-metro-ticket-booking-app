@@ -25,14 +25,169 @@ body,
   overflow-x: hidden;
 }
 
+html[data-theme='dark'] body {
+  background-color: #07111f;
+  background-image:
+    radial-gradient(at 100% 0%, rgba(56, 189, 248, 0.10) 0px, transparent 42%),
+    radial-gradient(at 0% 100%, rgba(16, 185, 129, 0.08) 0px, transparent 46%);
+}
+
+.theme-dark {
+  background:
+    linear-gradient(180deg, #07111f 0%, #0b1220 42%, #07111f 100%);
+  color: #e2e8f0;
+}
+
+.theme-dark .bg-white,
+.theme-dark .bg-white\/95,
+.theme-dark .bg-slate-50 {
+  background-color: rgba(15, 23, 42, 0.94) !important;
+}
+
+.theme-dark .qr-scan-surface {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+.theme-dark .bg-slate-100 {
+  background-color: rgba(30, 41, 59, 0.92) !important;
+}
+
+.theme-dark .bg-slate-200 {
+  background-color: rgba(51, 65, 85, 0.92) !important;
+}
+
+.theme-dark .border-slate-100,
+.theme-dark .border-slate-200,
+.theme-dark .border-slate-300 {
+  border-color: rgba(71, 85, 105, 0.72) !important;
+}
+
+.theme-dark .text-slate-900,
+.theme-dark .text-slate-800,
+.theme-dark .text-slate-700 {
+  color: #e5edf7 !important;
+}
+
+.theme-dark .text-slate-600,
+.theme-dark .text-slate-500,
+.theme-dark .text-slate-400 {
+  color: #9fb0c8 !important;
+}
+
+.theme-dark .text-\[\#0F2C59\] {
+  color: #93c5fd !important;
+}
+
+.theme-dark input,
+.theme-dark button,
+.theme-dark select,
+.theme-dark textarea {
+  color-scheme: dark;
+}
+
+.theme-dark .shadow-sm,
+.theme-dark .shadow-md,
+.theme-dark .shadow-inner {
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22) !important;
+}
+
+.theme-dark table tbody tr:hover,
+.theme-dark .hover\:bg-slate-50:hover,
+.theme-dark .hover\:bg-slate-100:hover,
+.theme-dark .hover\:bg-slate-200:hover {
+  background-color: rgba(30, 41, 59, 0.9) !important;
+}
+
+.theme-dark code {
+  background-color: rgba(6, 78, 59, 0.28) !important;
+}
+
+.theme-dark .bg-red-50 {
+  background-color: rgba(127, 29, 29, 0.30) !important;
+}
+
+.theme-dark .bg-emerald-50 {
+  background-color: rgba(6, 78, 59, 0.30) !important;
+}
+
+.theme-dark .bg-amber-50 {
+  background-color: rgba(120, 53, 15, 0.30) !important;
+}
+
+.theme-dark .bg-indigo-50 {
+  background-color: rgba(49, 46, 129, 0.34) !important;
+}
+
+.theme-dark .bg-blue-50,
+.theme-dark .bg-purple-50,
+.theme-dark .bg-orange-50,
+.theme-dark .bg-pink-50 {
+  background-color: rgba(15, 23, 42, 0.8) !important;
+}
+
 /* Subtle micro-animations */
 @keyframes pulse-soft {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.9; transform: scale(1.01); }
 }
 
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .animate-pulse-soft {
   animation: pulse-soft 3s infinite ease-in-out;
+}
+
+.motion-enter {
+  animation: fade-up 480ms ease-out both;
+}
+
+.motion-delay-1 {
+  animation-delay: 90ms;
+}
+
+.rounded-xl,
+.rounded-lg {
+  transition:
+    background-color 220ms ease,
+    border-color 220ms ease,
+    box-shadow 220ms ease,
+    transform 220ms ease;
+}
+
+button,
+tr,
+.rounded-md {
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+button:not(:disabled):active {
+  transform: translateY(1px) scale(0.99);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+  }
 }
 
 /* Scrollbars customized for light mode */

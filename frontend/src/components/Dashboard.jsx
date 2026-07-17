@@ -208,7 +208,7 @@ export default function Dashboard({ refreshTrigger }) {
 
                   {/* Scannable QR Code */}
                   <div className="bg-slate-50 p-3 rounded-lg max-w-[160px] mx-auto mb-4 border border-slate-200 flex flex-col items-center">
-                    <div className={`bg-white p-2 rounded-md border border-slate-100 ${selectedTicket.status === 'ACTIVE' ? '' : 'opacity-45 grayscale'}`}>
+                    <div className={`qr-scan-surface bg-white p-2 rounded-md border border-slate-100 ${selectedTicket.status === 'ACTIVE' ? '' : 'opacity-45 grayscale'}`}>
                       <QRCodeSVG
                         value={buildTicketValidationUrl(selectedTicket)}
                         size={132}
