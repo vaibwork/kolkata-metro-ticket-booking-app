@@ -17,6 +17,7 @@ export const getRoute = (source, destination) => API.get('/route', {
     : { source, destination },
 });
 export const getTickets = () => API.get('/tickets');
+export const deleteTicket = (ticketNumber) => API.delete(`/tickets/${encodeURIComponent(ticketNumber)}`);
 export const bookTicket = (source, destination, fare, expiresInMinutes = 60) => 
   API.post('/tickets', { 
     source, 

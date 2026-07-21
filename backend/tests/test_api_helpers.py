@@ -1,12 +1,41 @@
 import datetime
 from types import SimpleNamespace
 
-from app.api.routes import build_ticket_validation_response, get_all_stations, health_check
+import pytest
+
+from app.api.routes import build_ticket_validation_response, delete_ticket_record, get_all_stations, health_check
 
 
 class FakeDb:
     def execute(self, statement):
         return 1
+
+
+class FakeTicketQuery:
+    def __init__(self, ticket):
+        self.ticket = ticket
+
+    def filter(self, expression):
+        return self
+
+    def first(self):
+        return self.ticket
+
+
+class FakeTicketDeleteDb:
+    def __init__(self, ticket):
+        self.ticket = ticket
+        self.deleted_ticket = None
+        self.committed = False
+
+    def query(self, model):
+        return FakeTicketQuery(self.ticket)
+
+    def delete(self, ticket):
+        self.deleted_ticket = ticket
+
+    def commit(self):
+        self.committed = True
 
 
 def test_get_all_stations_returns_sqlite_station_directory():
@@ -60,3 +89,24 @@ def test_ticket_validation_denies_expired_ticket():
     assert validation["gate_access"] == "DENIED"
     assert validation["ticket_status"] == "EXPIRED"
     assert validation["reason"] == "Ticket has expired."
+
+
+def test_delete_ticket_record_deletes_existing_ticket():
+    ticket = SimpleNamespace(ticket_number="KMETRO-DELETE1")
+    db = FakeTicketDeleteDb(ticket)
+
+    result = delete_ticket_record("KMETRO-DELETE1", db)
+
+    assert result == {
+        "deleted": True,
+        "ticket_number": "KMETRO-DELETE1",
+    }
+    assert db.deleted_ticket is ticket
+    assert db.committed is True
+
+
+def test_delete_ticket_record_raises_for_missing_ticket():
+    db = FakeTicketDeleteDb(None)
+
+    with pytest.raises(ValueError, match="Ticket not found"):
+        delete_ticket_record("KMETRO-MISSING", db)

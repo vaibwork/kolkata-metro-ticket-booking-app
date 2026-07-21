@@ -79,6 +79,10 @@ class TicketValidationResponse(BaseModel):
     server_time: datetime.datetime
     expires_at: datetime.datetime
 
+class TicketDeleteResponse(BaseModel):
+    deleted: bool
+    ticket_number: str
+
 def _as_aware_utc(value: datetime.datetime) -> datetime.datetime:
     if value.tzinfo is None:
         return value.replace(tzinfo=datetime.timezone.utc)
@@ -117,6 +121,21 @@ def build_ticket_validation_response(ticket: Ticket, now: Optional[datetime.date
         "ticket_status": status,
         "server_time": server_time,
         "expires_at": expires_at,
+    }
+
+def delete_ticket_record(ticket_number: str, db: Session) -> dict:
+    """
+    Deletes a stored ticket by ticket number.
+    """
+    ticket = db.query(Ticket).filter(Ticket.ticket_number == ticket_number).first()
+    if not ticket:
+        raise ValueError("Ticket not found.")
+
+    db.delete(ticket)
+    db.commit()
+    return {
+        "deleted": True,
+        "ticket_number": ticket_number,
     }
 
 # --- API Endpoints ---
@@ -194,6 +213,19 @@ def validate_ticket(ticket_number: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Ticket not found.")
 
     return build_ticket_validation_response(ticket)
+
+@router.delete("/tickets/{ticket_number}", response_model=TicketDeleteResponse)
+def delete_ticket(ticket_number: str, db: Session = Depends(get_db)):
+    """
+    Deletes a booked ticket from the registry.
+    """
+    try:
+        return delete_ticket_record(ticket_number, db)
+    except ValueError as ve:
+        raise HTTPException(status_code=404, detail=str(ve))
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to delete ticket: {str(e)}")
 
 @router.post("/tickets", response_model=TicketResponseSchema, status_code=201)
 def purchase_ticket(ticket_data: TicketCreateSchema, db: Session = Depends(get_db)):

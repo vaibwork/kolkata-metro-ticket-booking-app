@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { API_BASE_URL, getTickets } from '../services/api';
+import { API_BASE_URL, deleteTicket, getTickets } from '../services/api';
 import {
   Ticket,
   Clock,
@@ -10,6 +10,7 @@ import {
   ArrowRight,
   ShieldAlert,
   ChevronDown,
+  Trash2,
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -23,6 +24,7 @@ export default function Dashboard({ refreshTrigger, latestBookedTicket }) {
   const [error, setError] = useState(null);
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [showRegistry, setShowRegistry] = useState(true);
+  const [deletingTicket, setDeletingTicket] = useState(null);
 
   const fetchTickets = async () => {
     setLoading(true);
@@ -74,6 +76,33 @@ export default function Dashboard({ refreshTrigger, latestBookedTicket }) {
         {status}
       </span>
     );
+  };
+
+  const handleDeleteTicket = async (event, ticket) => {
+    event.stopPropagation();
+    const confirmed = window.confirm(`Delete ticket ${ticket.ticket_number}? This removes it from the booking registry.`);
+    if (!confirmed) {
+      return;
+    }
+
+    setDeletingTicket(ticket.ticket_number);
+    setError(null);
+    try {
+      await deleteTicket(ticket.ticket_number);
+      const remainingTickets = tickets.filter((item) => item.ticket_number !== ticket.ticket_number);
+      setTickets(remainingTickets);
+
+      if (selectedTicket?.ticket_number === ticket.ticket_number) {
+        setSelectedTicket(remainingTickets[0] || null);
+      }
+
+      fetchTickets();
+    } catch (err) {
+      console.error(err);
+      setError(err.response?.data?.detail || "Unable to delete ticket. Check PostgreSQL connection.");
+    } finally {
+      setDeletingTicket(null);
+    }
   };
 
   return (
@@ -263,11 +292,12 @@ export default function Dashboard({ refreshTrigger, latestBookedTicket }) {
               </div>
             ) : (
               <div className="border border-slate-200 rounded-lg overflow-hidden">
-                <div className="hidden md:grid grid-cols-[minmax(150px,0.85fr)_minmax(360px,2.7fr)_minmax(90px,0.45fr)_minmax(110px,0.5fr)] gap-3 bg-[#0F2C59] text-white font-bold uppercase tracking-wider text-[10px] px-4 py-3">
+                <div className="hidden md:grid grid-cols-[minmax(140px,0.8fr)_minmax(320px,2.35fr)_minmax(80px,0.4fr)_minmax(100px,0.45fr)_minmax(84px,0.4fr)] gap-3 bg-[#0F2C59] text-white font-bold uppercase tracking-wider text-[10px] px-4 py-3">
                   <span>Ticket</span>
                   <span>Journey</span>
                   <span>Fare</span>
                   <span>Status</span>
+                  <span>Actions</span>
                 </div>
 
                 <div className="divide-y divide-slate-200">
@@ -275,15 +305,22 @@ export default function Dashboard({ refreshTrigger, latestBookedTicket }) {
                     const isSelected = selectedTicket?.id === t.id;
 
                     return (
-                      <button
-                        type="button"
+                      <div
+                        role="button"
+                        tabIndex={0}
                         key={t.id}
                         onClick={() => setSelectedTicket(t)}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            setSelectedTicket(t);
+                          }
+                        }}
                         className={`booking-row w-full text-left cursor-pointer transition hover:bg-slate-50 px-3 sm:px-4 py-3 ${
                           isSelected ? 'selected-booking-row bg-slate-100/80 border-l-4 border-l-[#0F2C59]' : ''
                         }`}
                       >
-                        <div className="grid grid-cols-1 md:grid-cols-[minmax(150px,0.85fr)_minmax(360px,2.7fr)_minmax(90px,0.45fr)_minmax(110px,0.5fr)] gap-3 md:items-center text-xs min-w-0">
+                        <div className="grid grid-cols-1 md:grid-cols-[minmax(140px,0.8fr)_minmax(320px,2.35fr)_minmax(80px,0.4fr)_minmax(100px,0.45fr)_minmax(84px,0.4fr)] gap-3 md:items-center text-xs min-w-0">
                           <div className="min-w-0">
                             <span className="block md:hidden text-[9px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Ticket</span>
                             <span className="block font-mono font-bold text-slate-700 break-all md:break-normal md:text-[11px]">{t.ticket_number}</span>
@@ -310,8 +347,23 @@ export default function Dashboard({ refreshTrigger, latestBookedTicket }) {
                             <span className="block md:hidden text-[9px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Status</span>
                             {renderStatusBadge(t.status)}
                           </div>
+
+                          <div>
+                            <span className="block md:hidden text-[9px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Actions</span>
+                            <button
+                              type="button"
+                              onClick={(event) => handleDeleteTicket(event, t)}
+                              disabled={deletingTicket === t.ticket_number}
+                              className="inline-flex items-center justify-center gap-1 rounded-md border border-red-200 bg-red-50 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-red-700 transition hover:bg-red-100 hover:border-red-300 disabled:opacity-50 disabled:cursor-wait"
+                              aria-label={`Delete ticket ${t.ticket_number}`}
+                              title={`Delete ${t.ticket_number}`}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                              <span className="hidden lg:inline">{deletingTicket === t.ticket_number ? 'Deleting' : 'Delete'}</span>
+                            </button>
+                          </div>
                         </div>
-                      </button>
+                      </div>
                     );
                   })}
                 </div>
